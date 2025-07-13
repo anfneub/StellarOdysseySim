@@ -29,16 +29,16 @@ class UniverseMap {
         this.showPublicSystems = localStorage.getItem('showPublicSystems') === 'true';
         this.showCurrentPosition = localStorage.getItem('showCurrentPosition') === 'true';
         this.showPlayerJourney = localStorage.getItem('showPlayerJourney') === 'true';
-        this.showSpaceStations = localStorage.getItem('showSpaceStations') === 'true';
+        // this.showSpaceStations = localStorage.getItem('showSpaceStations') === 'true';
         
         // Space station coordinates (hardcoded)
-        this.spaceStations = [];
+        // this.spaceStations = [];
         
         // Set initial checkbox states
         document.getElementById('show_public_systems').checked = this.showPublicSystems;
         document.getElementById('show_current_position').checked = this.showCurrentPosition;
         document.getElementById('show_player_journey').checked = this.showPlayerJourney;
-        document.getElementById('show_space_stations').checked = this.showSpaceStations;
+        // document.getElementById('show_space_stations').checked = this.showSpaceStations;
 
         // Add checkbox event listeners
         document.getElementById('show_public_systems').addEventListener('change', (e) => {
@@ -68,11 +68,11 @@ class UniverseMap {
             this.draw();
         });
 
-        document.getElementById('show_space_stations').addEventListener('change', (e) => {
-            this.showSpaceStations = e.target.checked;
-            localStorage.setItem('showSpaceStations', this.showSpaceStations);
-            this.draw();
-        });
+        // document.getElementById('show_space_stations').addEventListener('change', (e) => {
+        //     this.showSpaceStations = e.target.checked;
+        //     localStorage.setItem('showSpaceStations', this.showSpaceStations);
+        //     this.draw();
+        // });
 
         // Set canvas size
         this.resizeCanvas();
@@ -500,80 +500,80 @@ class UniverseMap {
         }
 
         // Draw space station Voronoi regions if enabled
-        if (this.showSpaceStations) {
-            // Use Voronoi from global scope (rhill-voronoi-core.min.js)
-            const voronoi = new Voronoi();
-            // Prepare sites for Voronoi
-            const sites = this.spaceStations.map((ss, i) => ({ x: ss.x, y: ss.y, voronoiId: i }));
-            // Bounding box for the universe
-            const bbox = { xl: 0, xr: 2000, yt: 0, yb: 2000 };
-            // Compute diagram
-            const diagram = voronoi.compute(sites, bbox);
-            // Colors for each SS (10 visually distinct, base RGB)
-            const baseColors = [
-                [79, 163, 255],    // blue
-                [255, 82, 82],     // red
-                [76, 175, 80],     // green
-                [255, 193, 7],     // yellow
-                [156, 39, 176],    // purple
-                [255, 152, 0],     // orange
-                [233, 30, 99],     // pink
-                [0, 188, 212],     // cyan
-                [121, 85, 72],     // brown
-                [158, 158, 158]    // gray
-            ];
-            // For each space station, draw its region and marker in the same color
-            for (let idx = 0; idx < this.spaceStations.length; idx++) {
-                const ss = this.spaceStations[idx];
-                const rgb = baseColors[idx % baseColors.length];
-                const regionColor = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 0.3)`;
-                const markerColor = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 1)`;
-                // Find the Voronoi cell for this station by matching coordinates
-                const cell = diagram.cells.find(cell => cell.site && Number(cell.site.x) === Number(ss.x) && Number(cell.site.y) === Number(ss.y));
-                if (cell && cell.halfedges.length) {
-                    this.ctx.save();
-                    // Clip to graph area (inside axes)
-                    this.ctx.beginPath();
-                    this.ctx.rect(padding.left, padding.top, graphWidth, graphHeight);
-                    this.ctx.clip();
-                    // Draw the region
-                    this.ctx.beginPath();
-                    cell.halfedges.forEach((he, i) => {
-                        const start = he.getStartpoint();
-                        const px = toPixelX(start.x);
-                        const py = toPixelY(start.y);
-                        if (i === 0) {
-                            this.ctx.moveTo(px, py);
-                        } else {
-                            this.ctx.lineTo(px, py);
-                        }
-                    });
-                    this.ctx.closePath();
-                    this.ctx.fillStyle = regionColor;
-                    this.ctx.fill();
-                    this.ctx.restore();
-                }
-                // Draw SS marker
-                const px = toPixelX(ss.x);
-                const py = toPixelY(ss.y);
-                this.ctx.save();
-                this.ctx.beginPath();
-                this.ctx.arc(px, py, 5, 0, Math.PI * 2);
-                this.ctx.fillStyle = markerColor;
-                this.ctx.shadowColor = '#000';
-                this.ctx.shadowBlur = 8;
-                this.ctx.fill();
-                this.ctx.restore();
-                // Draw border
-                this.ctx.save();
-                this.ctx.beginPath();
-                this.ctx.arc(px, py, 5, 0, Math.PI * 2);
-                this.ctx.lineWidth = 3;
-                this.ctx.strokeStyle = '#fff';
-                this.ctx.stroke();
-                this.ctx.restore();
-            }
-        }
+        // if (this.showSpaceStations) {
+        //     // Use Voronoi from global scope (rhill-voronoi-core.min.js)
+        //     const voronoi = new Voronoi();
+        //     // Prepare sites for Voronoi
+        //     const sites = this.spaceStations.map((ss, i) => ({ x: ss.x, y: ss.y, voronoiId: i }));
+        //     // Bounding box for the universe
+        //     const bbox = { xl: 0, xr: 2000, yt: 0, yb: 2000 };
+        //     // Compute diagram
+        //     const diagram = voronoi.compute(sites, bbox);
+        //     // Colors for each SS (10 visually distinct, base RGB)
+        //     const baseColors = [
+        //         [79, 163, 255],    // blue
+        //         [255, 82, 82],     // red
+        //         [76, 175, 80],     // green
+        //         [255, 193, 7],     // yellow
+        //         [156, 39, 176],    // purple
+        //         [255, 152, 0],     // orange
+        //         [233, 30, 99],     // pink
+        //         [0, 188, 212],     // cyan
+        //         [121, 85, 72],     // brown
+        //         [158, 158, 158]    // gray
+        //     ];
+        //     // For each space station, draw its region and marker in the same color
+        //     for (let idx = 0; idx < this.spaceStations.length; idx++) {
+        //         const ss = this.spaceStations[idx];
+        //         const rgb = baseColors[idx % baseColors.length];
+        //         const regionColor = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 0.3)`;
+        //         const markerColor = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 1)`;
+        //         // Find the Voronoi cell for this station by matching coordinates
+        //         const cell = diagram.cells.find(cell => cell.site && Number(cell.site.x) === Number(ss.x) && Number(cell.site.y) === Number(ss.y));
+        //         if (cell && cell.halfedges.length) {
+        //             this.ctx.save();
+        //             // Clip to graph area (inside axes)
+        //             this.ctx.beginPath();
+        //             this.ctx.rect(padding.left, padding.top, graphWidth, graphHeight);
+        //             this.ctx.clip();
+        //             // Draw the region
+        //             this.ctx.beginPath();
+        //             cell.halfedges.forEach((he, i) => {
+        //                 const start = he.getStartpoint();
+        //                 const px = toPixelX(start.x);
+        //                 const py = toPixelY(start.y);
+        //                 if (i === 0) {
+        //                     this.ctx.moveTo(px, py);
+        //                 } else {
+        //                     this.ctx.lineTo(px, py);
+        //                 }
+        //             });
+        //             this.ctx.closePath();
+        //             this.ctx.fillStyle = regionColor;
+        //             this.ctx.fill();
+        //             this.ctx.restore();
+        //         }
+        //         // Draw SS marker
+        //         const px = toPixelX(ss.x);
+        //         const py = toPixelY(ss.y);
+        //         this.ctx.save();
+        //         this.ctx.beginPath();
+        //         this.ctx.arc(px, py, 5, 0, Math.PI * 2);
+        //         this.ctx.fillStyle = markerColor;
+        //         this.ctx.shadowColor = '#000';
+        //         this.ctx.shadowBlur = 8;
+        //         this.ctx.fill();
+        //         this.ctx.restore();
+        //         // Draw border
+        //         this.ctx.save();
+        //         this.ctx.beginPath();
+        //         this.ctx.arc(px, py, 5, 0, Math.PI * 2);
+        //         this.ctx.lineWidth = 3;
+        //         this.ctx.strokeStyle = '#fff';
+        //         this.ctx.stroke();
+        //         this.ctx.restore();
+        //     }
+        // }
     }
 
     handleMouseMove(e) {
@@ -823,196 +823,190 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // --- Space Stations UI logic ---
-    const ssBlock = document.getElementById('ssBlock');
-    if (!ssBlock) return;
-    const ssListDiv = document.getElementById('ssList');
-/*     const ssAddX = document.getElementById('ssAddX');
-    const ssAddY = document.getElementById('ssAddY');
-    const ssAddBtn = document.getElementById('ssAddBtn'); */
-    const ssLoadBtn = document.getElementById('ssLoadBtn');
+    // const ssBlock = document.getElementById('ssBlock');
+    // if (!ssBlock) return;
+    // const ssListDiv = document.getElementById('ssList');
+    // const ssLoadBtn = document.getElementById('ssLoadBtn');
 
-    // Use localStorage to persist SS list between reloads
-    function getSavedSS() {
-        const saved = localStorage.getItem('spaceStationsList');
-        if (saved) {
-            try {
-                const arr = JSON.parse(saved);
-                if (Array.isArray(arr) && arr.length >= 1 && arr.length <= 10) {
-                    return arr;
-                }
-            } catch {}
-        }
-        // Default
-        return [ { x: 0, y: 0 } ];
-    }
-    function saveSS(list) {
-        localStorage.setItem('spaceStationsList', JSON.stringify(list));
-    }
+    // // Use localStorage to persist SS list between reloads
+    // function getSavedSS() {
+    //     const saved = localStorage.getItem('spaceStationsList');
+    //     if (saved) {
+    //         try {
+    //             const arr = JSON.parse(saved);
+    //             if (Array.isArray(arr) && arr.length >= 1 && arr.length <= 10) {
+    //                 return arr;
+    //             }
+    //         } catch {}
+    //     }
+    //     // Default
+    //     return [ { x: 0, y: 0 } ];
+    // }
+    // function saveSS(list) {
+    //     localStorage.setItem('spaceStationsList', JSON.stringify(list));
+    // }
 
-    let ssList = getSavedSS();
+    // let ssList = getSavedSS();
 
-    function renderSSList() {
-        ssListDiv.innerHTML = '';
-        // Always at least one row
-        if (ssList.length === 0) ssList.push({ x: 0, y: 0 });
-        ssList.forEach((ss, idx) => {
-            const row = document.createElement('div');
-            row.style.display = 'flex';
-            row.style.alignItems = 'center';
-            row.style.gap = '0.5em';
-            row.style.marginBottom = '0.5em';
-            row.style.height = '2.2em';
+    // function renderSSList() {
+    //     ssListDiv.innerHTML = '';
+    //     // Always at least one row
+    //     if (ssList.length === 0) ssList.push({ x: 0, y: 0 });
+    //     ssList.forEach((ss, idx) => {
+    //         const row = document.createElement('div');
+    //         row.style.display = 'flex';
+    //         row.style.alignItems = 'center';
+    //         row.style.gap = '0.5em';
+    //         row.style.marginBottom = '0.5em';
+    //         row.style.height = '2.2em';
 
-            // X field
-            const xInput = document.createElement('input');
-            xInput.type = 'number';
-            xInput.min = 0;
-            xInput.max = 2000;
-            xInput.value = ss.x;
-            xInput.style.width = '4.5em';
-            xInput.style.height = '2em';
-            xInput.style.background = '#36405a';
-            xInput.style.color = '#e6eaf3';
-            xInput.style.border = '1px solid #2c3242';
-            xInput.style.borderRadius = '4px';
-            xInput.style.padding = '0.2em';
-            xInput.style.boxSizing = 'border-box';
-            xInput.style.fontSize = '0.8em';
-            xInput.addEventListener('input', () => {
-                ssList[idx].x = xInput.value;
-            });
+    //         // X field
+    //         const xInput = document.createElement('input');
+    //         xInput.type = 'number';
+    //         xInput.min = 0;
+    //         xInput.max = 2000;
+    //         xInput.value = ss.x;
+    //         xInput.style.width = '4.5em';
+    //         xInput.style.height = '2em';
+    //         xInput.style.background = '#36405a';
+    //         xInput.style.color = '#e6eaf3';
+    //         xInput.style.border = '1px solid #2c3242';
+    //         xInput.style.borderRadius = '4px';
+    //         xInput.style.padding = '0.2em';
+    //         xInput.style.boxSizing = 'border-box';
+    //         xInput.style.fontSize = '0.8em';
+    //         xInput.addEventListener('input', () => {
+    //             ssList[idx].x = xInput.value;
+    //         });
 
-            // Y field
-            const yInput = document.createElement('input');
-            yInput.type = 'number';
-            yInput.min = 0;
-            yInput.max = 2000;
-            yInput.value = ss.y;
-            yInput.style.width = '4.5em';
-            yInput.style.height = '2em';
-            yInput.style.background = '#36405a';
-            yInput.style.color = '#e6eaf3';
-            yInput.style.border = '1px solid #2c3242';
-            yInput.style.borderRadius = '4px';
-            yInput.style.padding = '0.2em';
-            yInput.style.boxSizing = 'border-box';
-            yInput.style.fontSize = '0.8em';
-            yInput.addEventListener('input', () => {
-                ssList[idx].y = yInput.value;
-            });
+    //         // Y field
+    //         const yInput = document.createElement('input');
+    //         yInput.type = 'number';
+    //         yInput.min = 0;
+    //         yInput.max = 2000;
+    //         yInput.value = ss.y;
+    //         yInput.style.width = '4.5em';
+    //         yInput.style.height = '2em';
+    //         yInput.style.background = '#36405a';
+    //         yInput.style.color = '#e6eaf3';
+    //         yInput.style.border = '1px solid #2c3242';
+    //         yInput.style.borderRadius = '4px';
+    //         yInput.style.padding = '0.2em';
+    //         yInput.style.boxSizing = 'border-box';
+    //         yInput.style.fontSize = '0.8em';
+    //         yInput.addEventListener('input', () => {
+    //             ssList[idx].y = yInput.value;
+    //         });
 
-            // Always append x and y input fields first
-            row.appendChild(xInput);
-            row.appendChild(yInput);
-            // Button logic: every row gets Remove if more than one row, last row also gets Add (unless max)
-            if (ssList.length > 1) {
-                const removeBtn = document.createElement('button');
-                removeBtn.textContent = 'Remove';
-                removeBtn.style.background = '#36405a';
-                removeBtn.style.color = '#e6eaf3';
-                removeBtn.style.border = '1px solid #2c3242';
-                removeBtn.style.borderRadius = '4px';
-                removeBtn.style.padding = '0.2em 0.7em';
-                removeBtn.style.height = '2em';
-                removeBtn.style.display = 'flex';
-                removeBtn.style.alignItems = 'center';
-                removeBtn.style.justifyContent = 'center';
-                removeBtn.style.fontSize = '0.8em';
-                removeBtn.style.marginTop = '+0px';
-                removeBtn.style.cursor = 'pointer';
-                removeBtn.onclick = function() {
-                    if (ssList.length > 1) {
-                        ssList.splice(idx, 1);
-                        renderSSList();
-                    }
-                };
-                row.appendChild(removeBtn);
-            }
-            if (idx === ssList.length - 1 && ssList.length < 10) {
-                const addBtn = document.createElement('button');
-                addBtn.textContent = 'Add';
-                addBtn.style.background = '#36405a';
-                addBtn.style.color = '#e6eaf3';
-                addBtn.style.border = '1px solid #2c3242';
-                addBtn.style.borderRadius = '4px';
-                addBtn.style.padding = '0.2em 0.7em';
-                addBtn.style.height = '2em';
-                addBtn.style.display = 'flex';
-                addBtn.style.alignItems = 'center';
-                addBtn.style.justifyContent = 'center';
-                addBtn.style.fontSize = '0.8em';
-                addBtn.style.marginTop = '+0px';
-                addBtn.style.cursor = 'pointer';
-                addBtn.onclick = function() {
-                    if (ssList.length < 10) {
-                        ssList.push({ x: 0, y: 0 });
-                        renderSSList();
-                    }
-                };
-                row.appendChild(addBtn);
-            }
-            ssListDiv.appendChild(row);
-        });
-    }
+    //         // Always append x and y input fields first
+    //         row.appendChild(xInput);
+    //         row.appendChild(yInput);
+    //         // Button logic: every row gets Remove if more than one row, last row also gets Add (unless max)
+    //         if (ssList.length > 1) {
+    //             const removeBtn = document.createElement('button');
+    //             removeBtn.textContent = 'Remove';
+    //             removeBtn.style.background = '#36405a';
+    //             removeBtn.style.color = '#e6eaf3';
+    //             removeBtn.style.border = '1px solid #2c3242';
+    //             removeBtn.style.borderRadius = '4px';
+    //             removeBtn.style.padding = '0.2em 0.7em';
+    //             removeBtn.style.height = '2em';
+    //             removeBtn.style.display = 'flex';
+    //             removeBtn.style.alignItems = 'center';
+    //             removeBtn.style.justifyContent = 'center';
+    //             removeBtn.style.fontSize = '0.8em';
+    //             removeBtn.style.marginTop = '+0px';
+    //             removeBtn.style.cursor = 'pointer';
+    //             removeBtn.onclick = function() {
+    //                 if (ssList.length > 1) {
+    //                     ssList.splice(idx, 1);
+    //                     renderSSList();
+    //                 }
+    //             };
+    //             row.appendChild(removeBtn);
+    //         }
+    //         if (idx === ssList.length - 1 && ssList.length < 10) {
+    //             const addBtn = document.createElement('button');
+    //             addBtn.textContent = 'Add';
+    //             addBtn.style.background = '#36405a';
+    //             addBtn.style.color = '#e6eaf3';
+    //             addBtn.style.border = '1px solid #2c3242';
+    //             addBtn.style.borderRadius = '4px';
+    //             addBtn.style.padding = '0.2em 0.7em';
+    //             addBtn.style.height = '2em';
+    //             addBtn.style.display = 'flex';
+    //             addBtn.style.alignItems = 'center';
+    //             addBtn.style.justifyContent = 'center';
+    //             addBtn.style.fontSize = '0.8em';
+    //             addBtn.style.marginTop = '+0px';
+    //             addBtn.style.cursor = 'pointer';
+    //             addBtn.onclick = function() {
+    //                 if (ssList.length < 10) {
+    //                     ssList.push({ x: 0, y: 0 });
+    //                     renderSSList();
+    //                 }
+    //             };
+    //             row.appendChild(addBtn);
+    //         }
+    //         ssListDiv.appendChild(row);
+    //     });
+    // }
 
-    renderSSList();
+    // renderSSList();
 
-    ssLoadBtn.onclick = function() {
-        // Animate the button (subtle opacity flash)
-        ssLoadBtn.style.transition = 'opacity 0.18s';
-        ssLoadBtn.style.opacity = '0.8';
-        setTimeout(() => {
-            ssLoadBtn.style.opacity = '1';
-        }, 180);
-        // Set button background and text color
-        ssLoadBtn.style.background = '#36405a';
-        ssLoadBtn.style.color = '#e6eaf3';
+    // ssLoadBtn.onclick = function() {
+    //     // Animate the button (subtle opacity flash)
+    //     ssLoadBtn.style.transition = 'opacity 0.18s';
+    //     ssLoadBtn.style.opacity = '0.8';
+    //     setTimeout(() => {
+    //         ssLoadBtn.style.opacity = '1';
+    //     }, 180);
+    //     // Set button background and text color
+    //     ssLoadBtn.style.background = '#36405a';
+    //     ssLoadBtn.style.color = '#e6eaf3';
 
-        // Read all rows, only use those with valid numbers
-        const validSS = [];
-        const rows = ssListDiv.querySelectorAll('div');
-        rows.forEach((row, idx) => {
-            const inputs = row.querySelectorAll('input');
-            if (inputs.length === 2) {
-                const x = Number(inputs[0].value);
-                const y = Number(inputs[1].value);
-                if (!isNaN(x) && !isNaN(y)) {
-                    validSS.push({ x, y });
-                }
-            }
-        });
-        const map = UniverseMap.getInstance();
-        if (map) {
-            map.spaceStations = validSS;
-            map.draw();
-        }
-        // Always update ssList with the latest values from the form
-        ssList = validSS.length ? validSS : [{ x: 0, y: 0 }];
-        saveSS(ssList);
-        renderSSList();
-    };
+    //     // Read all rows, only use those with valid numbers
+    //     const validSS = [];
+    //     const rows = ssListDiv.querySelectorAll('div');
+    //     rows.forEach((row, idx) => {
+    //         const inputs = row.querySelectorAll('input');
+    //         const x = Number(inputs[0].value);
+    //         const y = Number(inputs[1].value);
+    //         if (!isNaN(x) && !isNaN(y)) {
+    //             validSS.push({ x, y });
+    //         }
+    //     });
+    //     const map = UniverseMap.getInstance();
+    //     if (map) {
+    //         map.spaceStations = validSS;
+    //         map.draw();
+    //     }
+    //     // Always update ssList with the latest values from the form
+    //     ssList = validSS.length ? validSS : [{ x: 0, y: 0 }];
+    //     saveSS(ssList);
+    //     renderSSList();
+    // };
 
-    ssLoadBtn.style.cursor = 'pointer';
+    // ssLoadBtn.style.cursor = 'pointer';
 
-    // Always update map.spaceStations and draw if showSpaceStations is checked, after UniverseMap is initialized
-    setTimeout(() => {
-        const map = UniverseMap.getInstance();
-        if (map && map.showSpaceStations) {
-            const validSS = [];
-            const rows = ssListDiv.querySelectorAll('div');
-            rows.forEach((row) => {
-                const inputs = row.querySelectorAll('input');
-                if (inputs.length === 2) {
-                    const x = Number(inputs[0].value);
-                    const y = Number(inputs[1].value);
-                    if (!isNaN(x) && !isNaN(y)) {
-                        validSS.push({ x, y });
-                    }
-                }
-            });
-            map.spaceStations = validSS;
-            map.draw();
-        }
-    }, 0);
+    // // Always update map.spaceStations and draw if showSpaceStations is checked, after UniverseMap is initialized
+    // setTimeout(() => {
+    //     const map = UniverseMap.getInstance();
+    //     if (map && map.showSpaceStations) {
+    //         const validSS = [];
+    //         const rows = ssListDiv.querySelectorAll('div');
+    //         rows.forEach((row) => {
+    //             const inputs = row.querySelectorAll('input');
+    //             if (inputs.length === 2) {
+    //                 const x = Number(inputs[0].value);
+    //                 const y = Number(inputs[1].value);
+    //                 if (!isNaN(x) && !isNaN(y)) {
+    //                     validSS.push({ x, y });
+    //         }
+    //     });
+    //         map.spaceStations = validSS;
+    //         map.draw();
+    //     }
+    // }, 0);
 }); 
  

@@ -3,6 +3,8 @@ import { Element } from './dataclasses.js';
 class Player {
     constructor({ name = 'Player', power, precision, evasion, hull, available, weapon_dmg, shield_def, n_clones, vip_status, weapon_ele1 = null, weapon_ele2 = null, shield_ele1 = null, shield_ele2 = null, battle_boost = 0.0, pvp_boost = 0.0, mode = 'pve' }) {
         
+        console.log(battle_boost);  // TODO: remove this
+
         this.name = name;
         this.pow = power;
         this.pre_before_boost = precision
