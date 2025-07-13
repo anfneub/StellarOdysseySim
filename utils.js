@@ -63,13 +63,16 @@ function demillify(n) {
 function calculateBattleBoost(level) {
     level = Math.max(0, parseInt(level) || 0);
     let boost = 0;
-    if (level <= 10) {
-        boost = level * 0.05;
-    } else if (level <= 20) {
-        boost = 10 * 0.05 + (level - 10) * 0.03;
-    } else {
-        boost = 10 * 0.05 + 10 * 0.03 + (level - 20) * 0.02;
-    }
+
+    boost = level * 0.05;
+
+    // if (level <= 10) {
+    //     boost = level * 0.05;
+    // } else if (level <= 20) {
+    //     boost = 10 * 0.05 + (level - 10) * 0.03;
+    // } else {
+    //     boost = 10 * 0.05 + 10 * 0.03 + (level - 20) * 0.02;
+    // }
     return boost;
 }
 

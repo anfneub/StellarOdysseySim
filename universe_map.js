@@ -87,6 +87,9 @@ class UniverseMap {
         this.canvas.addEventListener('wheel', (e) => this.handleWheel(e));
 
         this.paused = false;
+        this.colorCache = new Map(); // Cache for journey point colors
+        this._lastDrawTime = 0;      // For throttling draw calls
+        this._drawQueued = false;    // For throttling draw calls
     }
 
     resizeCanvas() {
@@ -131,6 +134,7 @@ class UniverseMap {
 
     setJournalData(journalData) {
         this.journalData = journalData;
+        this.colorCache = new Map(); // Clear color cache when journal changes
         // Calculate and display total distance traveled
         const distanceElement = document.getElementById('totalDistance');
         if (distanceElement && this.journalData && this.journalData.fullJournal.length > 0) {
@@ -213,6 +217,9 @@ class UniverseMap {
     // Helper function to get color based on date
     getColorFromDate(date) {
         if (!date) return '#FF5252';
+        if (this.colorCache.has(date)) {
+            return this.colorCache.get(date);
+        }
         
         // Convert date string to timestamp
         const timestamp = new Date(date).getTime();
@@ -227,10 +234,25 @@ class UniverseMap {
         
         // Use a color gradient from blue (old) to red (new)
         const hue = (1 - normalized) * 240; // 240 (blue) to 0 (red)
-        return `hsl(${hue}, 100%, 50%)`;
+        const color = `hsl(${hue}, 100%, 50%)`;
+        this.colorCache.set(date, color);
+        return color;
     }
 
     draw() {
+        // Throttle draw calls to max 60fps
+        const now = performance.now();
+        if (now - this._lastDrawTime < 16) {
+            if (!this._drawQueued) {
+                this._drawQueued = true;
+                setTimeout(() => {
+                    this._drawQueued = false;
+                    this.draw();
+                }, 16 - (now - this._lastDrawTime));
+            }
+            return;
+        }
+        this._lastDrawTime = now;
         if (this.paused) return;
         const ctx = this.ctx;
         const width = this.canvas.width;
@@ -350,12 +372,13 @@ class UniverseMap {
             ctx.fillStyle = '#23283a';
             ctx.fillRect(colorbarX - 5, colorbarY - 5, colorbarWidth + 10, colorbarHeight + 10);
 
-            // Create gradient with multiple color stops to match the HSL interpolation
+            // Create gradient with multiple color stops: blue, cyan, green, yellow, red
             const gradient = ctx.createLinearGradient(0, colorbarY + colorbarHeight, 0, colorbarY);
-            gradient.addColorStop(0, 'hsl(240, 100%, 50%)');    // Blue (old)
-            gradient.addColorStop(0.5, 'hsl(120, 100%, 50%)');  // Green (middle)
-            gradient.addColorStop(1, 'hsl(0, 100%, 50%)');      // Red (new)
-            
+            gradient.addColorStop(0.00, 'hsl(240, 100%, 50%)');   // Blue (oldest)
+            gradient.addColorStop(0.25, 'hsl(180, 100%, 50%)');   // Cyan
+            gradient.addColorStop(0.50, 'hsl(120, 100%, 50%)');   // Green
+            gradient.addColorStop(0.75, 'hsl(60, 100%, 50%)');    // Yellow
+            gradient.addColorStop(1.00, 'hsl(0, 100%, 50%)');     // Red (newest)
             ctx.fillStyle = gradient;
             ctx.fillRect(colorbarX, colorbarY, colorbarWidth, colorbarHeight);
 
