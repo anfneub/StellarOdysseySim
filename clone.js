@@ -2,15 +2,13 @@ import { CloneModifiers } from './dataclasses.js';
 import { Player } from './player.js';
 
 class CloneName {
-    static index = 1;
-    constructor() {
-        this.value = `Clone ${CloneName.index}`;
-        CloneName.index += 1;
+    constructor(number) {
+        this.value = `Clone ${number}`;
     }
 }
 
 class Clone {
-    constructor(player, modifiers = null) {
+    constructor(player, modifiers = null, clone_number = 1) {
         this.hp = player.hp;
         this.dmg = player.dmg;
         this.pre = player.pre;
@@ -20,7 +18,7 @@ class Clone {
         this.shield_ele1 = player.shield_ele1;
         this.shield_ele2 = player.shield_ele2;
         this.modifiers = modifiers;
-        this.name = new CloneName();
+        this.name = new CloneName(clone_number);
 
         this.crit_chance = 0.0;
         this.crit_dmg = 0.3;
@@ -37,4 +35,4 @@ class Clone {
     }
 }
 
-export { Clone }; 
+export { Clone, CloneName }; 

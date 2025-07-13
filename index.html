@@ -309,6 +309,7 @@
         import { millify } from './utils.js';
         import { Optimizer } from './optimizer.js';
         import { WorkerPool } from './workerpool.js';
+        import { PvPBattle } from './battle.js';
         
         // Predefined test values for easy testing
         const DEFAULTS = {
@@ -1177,6 +1178,110 @@
             // On page load, initialize lastStats and display
             updateUnallocatedStatsDisplay();
             // --- End unallocated stats logic ---
+            
+            // PvP Tab logic
+            const pvpFightBtn = document.getElementById('pvpFightBtn');
+            const pvpBattleOutput = document.getElementById('pvpBattleOutput');
+            const attackingSquadInput = document.getElementById('attackingSquadInput');
+            const defendingSquadInput = document.getElementById('defendingSquadInput');
+            const pvpVerbose = document.getElementById('pvpVerbose');
+
+            // Restore PvP tab values from localStorage
+            if (attackingSquadInput && localStorage.getItem('pvpAttackingSquad')) {
+                attackingSquadInput.value = localStorage.getItem('pvpAttackingSquad');
+            }
+            if (defendingSquadInput && localStorage.getItem('pvpDefendingSquad')) {
+                defendingSquadInput.value = localStorage.getItem('pvpDefendingSquad');
+            }
+            if (pvpVerbose && localStorage.getItem('pvpVerboseChecked')) {
+                pvpVerbose.checked = localStorage.getItem('pvpVerboseChecked') === 'true';
+            }
+
+            // Save PvP tab values to localStorage on change/input
+            if (attackingSquadInput) {
+                attackingSquadInput.addEventListener('input', () => {
+                    localStorage.setItem('pvpAttackingSquad', attackingSquadInput.value);
+                });
+            }
+            if (defendingSquadInput) {
+                defendingSquadInput.addEventListener('input', () => {
+                    localStorage.setItem('pvpDefendingSquad', defendingSquadInput.value);
+                });
+            }
+            if (pvpVerbose) {
+                pvpVerbose.addEventListener('change', () => {
+                    localStorage.setItem('pvpVerboseChecked', pvpVerbose.checked);
+                });
+            }
+
+            if (pvpFightBtn) {
+                pvpFightBtn.addEventListener('click', () => {
+                    const attackersText = attackingSquadInput.value;
+                    const defendersText = defendingSquadInput.value;
+                    const nFightsInput = document.getElementById('pvpNFights');
+                    let nFights = parseInt(nFightsInput?.value) || 1;
+                    if (nFights < 1) nFights = 1;
+                    if (nFights > 1000000) nFights = 1000000;
+                    const verbose = (nFights === 1) && pvpVerbose.checked;
+                    let attackersJson, defendersJson;
+                    pvpBattleOutput.value = '';
+                    try {
+                        attackersJson = JSON.parse(attackersText);
+                    } catch (e) {
+                        pvpBattleOutput.value = 'Invalid JSON for Attacking squad: ' + e.message;
+                        return;
+                    }
+                    try {
+                        defendersJson = JSON.parse(defendersText);
+                    } catch (e) {
+                        pvpBattleOutput.value = 'Invalid JSON for Defending squad: ' + e.message;
+                        return;
+                    }
+                    if (nFights === 1) {
+                        let log = '';
+                        // Patch PvPBattle to allow log collection
+                        const oldLog = console.log;
+                        if (verbose) {
+                            console.log = (...args) => {
+                                log += args.join(' ') + '\n';
+                            };
+                        }
+                        try {
+                            const battle = PvPBattle.fromJSON(attackersJson, defendersJson, verbose);
+                            const result = battle.fight();
+                            if (verbose) {
+                                log += '\n';
+                            }
+                            log += result;
+                        } catch (e) {
+                            log += 'Error during battle: ' + e.message;
+                        }
+                        if (verbose) {
+                            console.log = oldLog;
+                        }
+                        pvpBattleOutput.value = log;
+                    } else {
+                        // Run nFights battles, count results
+                        let attackersWins = 0, defendersWins = 0, draws = 0;
+                        for (let i = 0; i < nFights; i++) {
+                            try {
+                                const battle = PvPBattle.fromJSON(attackersJson, defendersJson, false);
+                                const result = battle.fight();
+                                if (result.startsWith('Attackers')) attackersWins++;
+                                else if (result.startsWith('Defenders')) defendersWins++;
+                                else draws++;
+                            } catch (e) {
+                                draws++;
+                            }
+                        }
+                        pvpBattleOutput.value =
+                            `Results after ${nFights} fights:\n` +
+                            `Attackers won: ${attackersWins} (${((attackersWins/nFights)*100).toFixed(2)}%)\n` +
+                            `Defenders won: ${defendersWins} (${((defendersWins/nFights)*100).toFixed(2)}%)\n` +
+                            `Draws: ${draws} (${((draws/nFights)*100).toFixed(2)}%)`;
+                    }
+                });
+            }
         });
         
     </script>
@@ -1702,12 +1807,51 @@
         </div>
     </div>
     
+    <!-- PvP Tab -->
+    <div id="pvp-tab" class="tab-content">
+        <div class="form-section" style="display: flex; flex-direction: row; gap: 2em; align-items: flex-start;">
+            <!-- Attacking Squad JSON -->
+            <div style="flex: 1; display: flex; flex-direction: column;">
+                <label for="attackingSquadInput" style="font-size: 1.15em; font-weight: 600; margin-bottom: 0.5em;">Attacking squad</label>
+                <textarea id="attackingSquadInput" style="width: 100%; min-width: 600px; max-width: 600px; height: 320px; min-height: 320px; max-height: 600px; resize: both; font-size: 1em; background: #23283a; color: #e6eaf3; border: 1px solid #2c3242; border-radius: 6px; padding: 0.7em; overflow: auto;"></textarea>
+            </div>
+            <!-- Center controls -->
+            <div style="flex: none; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-width: 180px; max-width: 180px; margin-top: 2.5em; margin-left: 12.5em;">
+                <label style="margin-bottom: 1.2em; font-size: 1.1em; font-weight: 600;">PvP Battle</label>
+                <div style="margin-bottom: 1.2em; display: flex; flex-direction: column; align-items: center; gap: 0.7em;">
+                    <div style="display: flex; align-items: center; gap: 0.7em;">
+                        <input type="checkbox" id="pvpVerbose" style="margin-right: 0.5em;"> Verbose
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.2em; width: 100%;">
+                        <label for="pvpNFights" style="font-size: 1em; margin: 0;">Number of fights:</label>
+                        <input type="number" id="pvpNFights" min="1" max="1000000" value="1000" style="width: 6em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; margin-top: 0.2em;">
+                    </div>
+                </div>
+                <button id="pvpFightBtn" type="button" style="padding: 0.7em 2.2em; font-size: 1.1em; font-weight: 600; background: #36405a; color: #f3f6fa; border: 1px solid #4a5a7c; border-radius: 4px; cursor: pointer;">Fight</button>
+            </div>
+            <!-- Defending Squad JSON -->
+            <div style="flex: 1; display: flex; flex-direction: column;">
+                <label for="defendingSquadInput" style="font-size: 1.15em; font-weight: 600; margin-bottom: 0.5em;">Defending squad</label>
+                <textarea id="defendingSquadInput" style="width: 100%; min-width: 600px; max-width: 600px; height: 320px; min-height: 320px; max-height: 600px; resize: both; font-size: 1em; background: #23283a; color: #e6eaf3; border: 1px solid #2c3242; border-radius: 6px; padding: 0.7em; overflow: auto;"></textarea>
+            </div>
+        </div>
+        <!-- Battle Output -->
+        <div style="margin-top: 2.5em; display: flex; flex-direction: row; gap: 2em;">
+            <div style="flex: 1;">
+                <label for="pvpBattleOutput" style="font-size: 1.12em; font-weight: 600; margin-bottom: 0.5em;">Battle output</label>
+                <textarea id="pvpBattleOutput" readonly style="width: 100%; min-width: 98%; max-width: 100%; height: 260px; min-height: 120px; max-height: 600px; resize: vertical; font-size: 1em; background: #23283a; color: #e6eaf3; border: 1px solid #2c3242; border-radius: 6px; padding: 0.7em; overflow: auto;"></textarea>
+        </div>
+    </div>
+</div>
+<!-- End PvP Tab -->
+    
     <!-- Tab bar -->
     <div class="tab-container">
         <div class="tab active" data-tab="battling-tab">Battling</div>
         <div class="tab" data-tab="gathering-tab">Gathering</div>
         <div class="tab" data-tab="universe-map-tab">Universe Map</div>
         <div class="tab" data-tab="probabilities-tab">Probabilities</div>
+        <div class="tab" data-tab="pvp-tab">PvP</div>
     </div>
     
     <div id="playerResult"></div>

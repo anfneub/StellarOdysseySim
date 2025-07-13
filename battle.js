@@ -176,4 +176,215 @@ class Battle {
 
 }
 
-export { Battle }; 
+class PvPBattle {
+    constructor({ attackers, defenders, list_modifiers_attackers = null, list_modifiers_defenders = null, verbose = false }) {
+        // attackers and defenders are arrays of Player objects
+        // Sort by precision before boost, descending
+        this.attackers = [...attackers].sort((a, b) => b.pre_before_boost - a.pre_before_boost);
+        this.defenders = [...defenders].sort((a, b) => b.pre_before_boost - a.pre_before_boost);
+        this.verbose = verbose;
+        this.round_limit = 200; // Increase limit for long duels
+        this.current_round = 0;
+        this.battle_is_over = false;
+        this.elemental_bonus_damage = 0.0; // No elemental bonus in PvP
+
+        // Create squads for each player, using the correct list of modifiers for each
+        this.squads_attackers = this.attackers.map((player, idx) => {
+            const modifiers = (list_modifiers_attackers && list_modifiers_attackers[idx]) ? list_modifiers_attackers[idx] : null;
+            const squad = new CloneSquad(player, modifiers);
+            // Prefix clone names with player name
+            for (const clone of squad.squad) {
+                clone.name.value = `${player.name} ${clone.name.value}`;
+            }
+            return squad;
+        });
+        this.squads_defenders = this.defenders.map((player, idx) => {
+            const modifiers = (list_modifiers_defenders && list_modifiers_defenders[idx]) ? list_modifiers_defenders[idx] : null;
+            const squad = new CloneSquad(player, modifiers);
+            for (const clone of squad.squad) {
+                clone.name.value = `${player.name} ${clone.name.value}`;
+            }
+            return squad;
+        });
+
+        this.current_attacker = 0; // index of current player in attackers
+        this.current_defender = 0; // index of current player in defenders
+    }
+
+    get_living_clones(squad) {
+        return squad.squad.filter(clone => clone.current_hp > 0.0);
+    }
+
+    do_one_attack(attacker, target) {
+        // Same as PvE, but no elemental bonus
+        const attacker_hit_chance = attacker.pre / (attacker.pre + target.eva);
+        let curr_dmg = attacker.dmg;
+        const rng_attack = Math.random();
+        if (rng_attack < attacker_hit_chance) {
+            if (attacker instanceof Clone) {
+                const rng_crit = Math.random();
+                if (rng_crit < attacker.crit_chance) {
+                    curr_dmg *= (1 + attacker.crit_dmg);
+                }
+                // No elemental bonus
+            }
+            attacker.hit_counter += 1;
+            target.current_hp = Math.max(0.0, target.current_hp - curr_dmg);
+            if (this.verbose) {
+                console.log(`${attacker.name.value} attacks ${target.name.value} for ${curr_dmg.toFixed(2)} damage. ${target.name.value} is left with ${target.current_hp.toFixed(2)} HP.`);
+            }
+        } else if (this.verbose) {
+            console.log(`${attacker.name.value} missed while attacking ${target.name.value}.`);
+        }
+
+        if (attacker instanceof Clone && attacker.dual_shot_chance > 0.0 && Math.random() < attacker.dual_shot_chance) {
+            const rng_attack = Math.random();
+            if (rng_attack < attacker_hit_chance) {
+                curr_dmg = attacker.dmg;
+                if (Math.random() < attacker.crit_chance) {
+                    curr_dmg *= (1 + attacker.crit_dmg);
+                }
+                attacker.hit_counter += 1;
+                target.current_hp = Math.max(0.0, target.current_hp - curr_dmg);
+                if (this.verbose) {
+                    console.log(`${attacker.name.value} DUAL attacks ${target.name.value} for ${curr_dmg.toFixed(2)} damage. ${target.name.value} is left with ${target.current_hp.toFixed(2)} HP.`);
+                }
+            } else if (this.verbose) {
+                console.log(`${attacker.name.value} missed DUAL attack to ${target.name.value}.`);
+            }
+        }
+    }
+
+    duel(squad_attackers, squad_defenders) {
+        // Both squads fight until one is exhausted
+        let round = 0;
+        while (this.get_living_clones(squad_attackers).length > 0 && this.get_living_clones(squad_defenders).length > 0 && round < this.round_limit) {
+            // Defenders' living clones attack first
+            let living_defenders = this.get_living_clones(squad_defenders);
+            let living_attackers = this.get_living_clones(squad_attackers);
+            for (const attacker of living_defenders) {
+                living_attackers = this.get_living_clones(squad_attackers);
+                if (living_attackers.length === 0) break;
+                const target = living_attackers[Math.floor(Math.random() * living_attackers.length)];
+                this.do_one_attack(attacker, target);
+            }
+            // Then attackers' living clones attack
+            living_defenders = this.get_living_clones(squad_defenders);
+            living_attackers = this.get_living_clones(squad_attackers);
+            for (const attacker of living_attackers) {
+                living_defenders = this.get_living_clones(squad_defenders);
+                if (living_defenders.length === 0) break;
+                const target = living_defenders[Math.floor(Math.random() * living_defenders.length)];
+                this.do_one_attack(attacker, target);
+            }
+            round++;
+        }
+        // Return which squad is exhausted (or null for draw)
+        const attackersAlive = this.get_living_clones(squad_attackers).length > 0;
+        const defendersAlive = this.get_living_clones(squad_defenders).length > 0;
+        if (attackersAlive && !defendersAlive) return 'defenders';
+        if (!attackersAlive && defendersAlive) return 'attackers';
+        return null; // draw (should be rare)
+    }
+
+    fight() {
+        // Main PvP battle loop
+        while (this.current_attacker < this.squads_attackers.length && this.current_defender < this.squads_defenders.length) {
+            const squad_attackers = this.squads_attackers[this.current_attacker];
+            const squad_defenders = this.squads_defenders[this.current_defender];
+            if (this.verbose) {
+                const attackerName = this.attackers[this.current_attacker]?.name || `Attacker Player ${this.current_attacker + 1}`;
+                const defenderName = this.defenders[this.current_defender]?.name || `Defender Player ${this.current_defender + 1}`;
+                console.log(`\nDuel: ${attackerName} vs ${defenderName}`);
+            }
+            const exhausted = this.duel(squad_attackers, squad_defenders);
+            if (exhausted === 'attackers') {
+                this.current_attacker += 1;
+            } else if (exhausted === 'defenders') {
+                this.current_defender += 1;
+            } else {
+                // Both squads exhausted (draw), both move to next
+                this.current_attacker += 1;
+                this.current_defender += 1;
+            }
+            // Check if either team has any living clones left
+            const any_attackers = this.squads_attackers.slice(this.current_attacker).some(squad => this.get_living_clones(squad).length > 0);
+            const any_defenders = this.squads_defenders.slice(this.current_defender).some(squad => this.get_living_clones(squad).length > 0);
+            if (!any_attackers || !any_defenders) break;
+        }
+        // Determine winner
+        const any_attackers = this.squads_attackers.slice(this.current_attacker).some(squad => this.get_living_clones(squad).length > 0);
+        const any_defenders = this.squads_defenders.slice(this.current_defender).some(squad => this.get_living_clones(squad).length > 0);
+        if (any_attackers && !any_defenders) {
+            return `Attackers won!`;
+        } else if (any_defenders && !any_attackers) {
+            return `Defenders won!`;
+        } else {
+            return `Draw!`;
+        }
+    }
+
+    reset() {
+        for (const squad of this.squads_attackers) {
+            for (const clone of squad.squad) {
+                clone.current_hp = clone.hp;
+                clone.hit_counter = 0;
+            }
+        }
+        for (const squad of this.squads_defenders) {
+            for (const clone of squad.squad) {
+                clone.current_hp = clone.hp;
+                clone.hit_counter = 0;
+            }
+        }
+        this.battle_is_over = false;
+        this.current_round = 0;
+        this.current_attacker = 0;
+        this.current_defender = 0;
+    }
+}
+
+function parseSquadJSON(json) {
+    const players = [];
+    const modifiers = [];
+    for (const p of json.squad) {
+        players.push(new Player({
+            name: p.name || 'Player',
+            power: p.power,
+            precision: p.precision,
+            evasion: p.evasion,
+            hull: p.hull,
+            available: true,
+            weapon_dmg: p.weapon_dmg,
+            shield_def: p.shield_def,
+            n_clones: p.n_clones,
+            vip_status: false,
+            mode: 'pvp',
+            pvp_boost: p.pvp_boost || 0
+        }));
+        modifiers.push(
+            (p.clone_modifiers || []).map(
+                m => new CloneModifiers(
+                    m.crit_chance || 0,
+                    m.crit_dmg || 0,
+                    m.dual_shot_chance || 0
+                )
+            )
+        );
+    }
+    return { players, modifiers };
+}
+
+PvPBattle.fromJSON = function(attackers_json, defenders_json, verbose = false) {
+    const attackersData = parseSquadJSON(attackers_json);
+    const defendersData = parseSquadJSON(defenders_json);
+    return new PvPBattle({
+        attackers: attackersData.players,
+        defenders: defendersData.players,
+        list_modifiers_attackers: attackersData.modifiers,
+        list_modifiers_defenders: defendersData.modifiers,
+        verbose
+    });
+};
+
+export { Battle, PvPBattle }; 

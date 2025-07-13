@@ -1,4 +1,4 @@
-import { Clone } from './clone.js';
+import { Clone, CloneName } from './clone.js';
 import { Player } from './player.js';
 
 class CloneSquad {
@@ -9,9 +9,9 @@ class CloneSquad {
         this.squad = [];
         for (let i = 0; i < player.n_clones; i++) {
             if (list_modifiers === null) {
-                this.squad.push(new Clone(player, null));
+                this.squad.push(new Clone(player, null, i + 1));
             } else {
-                this.squad.push(new Clone(player, list_modifiers[i]));
+                this.squad.push(new Clone(player, list_modifiers[i], i + 1));
             }
         }
     }
