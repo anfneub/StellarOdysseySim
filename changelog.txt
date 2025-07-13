@@ -1,3 +1,8 @@
+2025-07-13 14:23
+- Added PvP fight simulator. Please refer to instruction on how to structure your squad JSON
+- Removed Space Station region of influence and added automatic plotting through API
+- Improved plot efficiency of player's journey
+
 2025-06-29 18:59
 - Added Sakaki's changes to Worker Pool for more computationally efficient optimization
 
