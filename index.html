@@ -1291,8 +1291,7 @@
                         pvpBattleOutput.value =
                             `Results after ${nFights} fights:\n` +
                             `Attackers won: ${attackersWins} (${((attackersWins/nFights)*100).toFixed(2)}%)\n` +
-                            `Defenders won: ${defendersWins} (${((defendersWins/nFights)*100).toFixed(2)}%)\n` +
-                            `Draws: ${draws} (${((draws/nFights)*100).toFixed(2)}%)`;
+                            `Defenders won: ${defendersWins} (${((defendersWins/nFights)*100).toFixed(2)}%)\n`;
                     }
                 });
             }
@@ -1831,8 +1830,80 @@
             </div>
             <!-- Center controls -->
             <div style="flex: none; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-width: 180px; max-width: 180px; margin-top: 2.5em; margin-left: 12.5em;">
-                <label style="margin-bottom: 1.2em; font-size: 1.1em; font-weight: 600;">PvP Battle</label>
-                <div style="margin-bottom: 1.2em; display: flex; flex-direction: column; align-items: center; gap: 0.7em;">
+                <label style="margin-bottom: 1.2em; font-size: 1.1em; font-weight: 600;">PvP Battle
+                  <span id="pvpInfoBtn" style="color: #4fa3ff; cursor: pointer; font-size: 1.15em; margin-left: 0.4em; vertical-align: middle;" title="How to use the PvP simulator">ⓘ</span>
+                </label>
+                <!-- PvP Info Modal -->
+                <div id="pvpInfoModal" style="display:none; position:fixed; z-index:1001; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4); align-items:center; justify-content:center;">
+                  <div style="background:#222; color:#fff; padding:1.5em; border-radius:10px; max-width:600px; width:90vw; max-height:70vh; overflow:auto; box-shadow:0 4px 32px #000; position:relative;">
+                    <button id="closePvpInfo" style="position:absolute; top:0.5em; right:0.5em; background:none; border:none; color:#fff; font-size:1.5em; cursor:pointer;">&times;</button>
+                    <h2 style="margin-top:0;">How to use the PvP Simulator</h2>
+                    <div style="font-size:1.08em; line-height:1.6; margin-top:1em;">
+                      <ul style="margin-left:1.2em;">
+                        <li>Manually insert the <b>attacker</b> and <b>defender</b> squads in <b>JSON format</b> in the appropriate text areas. Use the provided example as a template for your squad JSON structure.</li>
+                        <li>If you do not know what a <b>JSON</b> is, this simulator is probably not for you and you can safely ignore this tab.</li>
+                        <li>Click <b>Fight</b> to simulate the PvP battle. You can adjust the number of fights and enable verbose output for a single fight. <b>Verbose will only be applied if you run exactly 1 fight, and in that case it will display the whole battle log.</b></li>
+                      </ul>
+                      <div style="margin-top:1.2em; background:#181c24; color:#e6eaf3; border:1px solid #2c3242; border-radius:6px; padding:0.8em; font-size:0.98em;">
+                        <b>Example squad JSON:</b>
+                        <pre style="white-space:pre-wrap; background:none; color:#4fa3ff; margin:0; padding:0; font-size:0.97em;">
+{
+  "squad": [
+    {
+      "name": "Player1",
+      "power": 100,
+      "precision": 60,
+      "evasion": 80,
+      "hull": 120,
+      "weapon_dmg": 2000,
+      "shield_def": 2200,
+      "pvp_boost": 0.12,
+      "n_clones": 2,
+      "clone_modifiers": [
+        {
+          "crit_chance": 0.1,
+          "crit_dmg": 0.1,
+          "dual_shot_chance": 0.15
+        },
+        {
+          "crit_chance": 0.1,
+          "crit_dmg": 0.1,
+          "dual_shot_chance": 0.1
+        }
+      ]
+    },
+    {
+      "name": "Player2",
+      "power": 90,
+      "precision": 70,
+      "evasion": 90,
+      "hull": 110,
+      "weapon_dmg": 2300,
+      "shield_def": 2100,
+      "pvp_boost": 0.15,
+      "n_clones": 2,
+      "clone_modifiers": [
+        {
+          "crit_chance": 0.15,
+          "crit_dmg": 0.15,
+          "dual_shot_chance": 0.1
+        },
+        {
+          "crit_chance": 0.13,
+          "crit_dmg": 0.13,
+          "dual_shot_chance": 0.1
+        }
+      ]
+    }
+  ]
+}
+                              
+                        </pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 0.7em;">
                     <div style="display: flex; align-items: center; gap: 0.7em;">
                         <input type="checkbox" id="pvpVerbose" style="margin-right: 0.5em;"> Verbose
                     </div>
@@ -2170,6 +2241,26 @@
                         document.getElementById('probability_value').textContent = formatProbability(probability);
                         document.getElementById('estimated_systems').textContent = formatEstimatedSystems(estimatedSystems);
                     });
+                });
+            </script>
+            <script>
+                // PvP Info Modal logic
+                document.addEventListener('DOMContentLoaded', function() {
+                    const infoBtn = document.getElementById('pvpInfoBtn');
+                    const infoModal = document.getElementById('pvpInfoModal');
+                    const closeBtn = document.getElementById('closePvpInfo');
+                    if (infoBtn && infoModal && closeBtn) {
+                        infoBtn.addEventListener('click', function() {
+                            infoModal.style.display = 'flex';
+                        });
+                        closeBtn.addEventListener('click', function() {
+                            infoModal.style.display = 'none';
+                        });
+                        // Optional: close modal on outside click
+                        infoModal.addEventListener('click', function(e) {
+                            if (e.target === this) this.style.display = 'none';
+                        });
+                    }
                 });
             </script>
         </body>

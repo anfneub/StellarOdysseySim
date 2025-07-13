@@ -178,35 +178,40 @@ class Battle {
 
 class PvPBattle {
     constructor({ attackers, defenders, list_modifiers_attackers = null, list_modifiers_defenders = null, verbose = false }) {
-        // attackers and defenders are arrays of Player objects
-        // Sort by precision before boost, descending
-        this.attackers = [...attackers].sort((a, b) => b.pre_before_boost - a.pre_before_boost);
-        this.defenders = [...defenders].sort((a, b) => b.pre_before_boost - a.pre_before_boost);
+        // Build attacker squads and pair with players
+        let attackerSquads = attackers.map((player, idx) => ({
+            player,
+            squad: new CloneSquad(player, list_modifiers_attackers ? list_modifiers_attackers[idx] : null)
+        }));
+        // Sort by precision before boost
+        attackerSquads.sort((a, b) => b.player.pre_before_boost - a.player.pre_before_boost);
+        this.attackers = attackerSquads.map(pair => pair.player);
+        this.squads_attackers = attackerSquads.map(pair => {
+            for (const clone of pair.squad.squad) {
+                clone.name.value = `${pair.player.name} ${clone.name.value}`;
+            }
+            return pair.squad;
+        });
+
+        // Build defender squads and pair with players
+        let defenderSquads = defenders.map((player, idx) => ({
+            player,
+            squad: new CloneSquad(player, list_modifiers_defenders ? list_modifiers_defenders[idx] : null)
+        }));
+        defenderSquads.sort((a, b) => b.player.pre_before_boost - a.player.pre_before_boost);
+        this.defenders = defenderSquads.map(pair => pair.player);
+        this.squads_defenders = defenderSquads.map(pair => {
+            for (const clone of pair.squad.squad) {
+                clone.name.value = `${pair.player.name} ${clone.name.value}`;
+            }
+            return pair.squad;
+        });
+
         this.verbose = verbose;
         this.round_limit = 200; // Increase limit for long duels
         this.current_round = 0;
         this.battle_is_over = false;
         this.elemental_bonus_damage = 0.0; // No elemental bonus in PvP
-
-        // Create squads for each player, using the correct list of modifiers for each
-        this.squads_attackers = this.attackers.map((player, idx) => {
-            const modifiers = (list_modifiers_attackers && list_modifiers_attackers[idx]) ? list_modifiers_attackers[idx] : null;
-            const squad = new CloneSquad(player, modifiers);
-            // Prefix clone names with player name
-            for (const clone of squad.squad) {
-                clone.name.value = `${player.name} ${clone.name.value}`;
-            }
-            return squad;
-        });
-        this.squads_defenders = this.defenders.map((player, idx) => {
-            const modifiers = (list_modifiers_defenders && list_modifiers_defenders[idx]) ? list_modifiers_defenders[idx] : null;
-            const squad = new CloneSquad(player, modifiers);
-            for (const clone of squad.squad) {
-                clone.name.value = `${player.name} ${clone.name.value}`;
-            }
-            return squad;
-        });
-
         this.current_attacker = 0; // index of current player in attackers
         this.current_defender = 0; // index of current player in defenders
     }
