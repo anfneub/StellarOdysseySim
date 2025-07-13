@@ -24,12 +24,14 @@ class UniverseMap {
         this.ripples = [];
         this.journalData = null;
         this.hoveredJourneyPoint = null;
+        this.hoveredSpaceStation = null; // Added for squadron space stations
         
         // Load checkbox states from localStorage
         this.showPublicSystems = localStorage.getItem('showPublicSystems') === 'true';
         this.showCurrentPosition = localStorage.getItem('showCurrentPosition') === 'true';
         this.showPlayerJourney = localStorage.getItem('showPlayerJourney') === 'true';
-        // this.showSpaceStations = localStorage.getItem('showSpaceStations') === 'true';
+        this.showSpaceStations = localStorage.getItem('showSpaceStations') === 'true';
+        this.squadronSpaceStations = [];
         
         // Space station coordinates (hardcoded)
         // this.spaceStations = [];
@@ -38,7 +40,7 @@ class UniverseMap {
         document.getElementById('show_public_systems').checked = this.showPublicSystems;
         document.getElementById('show_current_position').checked = this.showCurrentPosition;
         document.getElementById('show_player_journey').checked = this.showPlayerJourney;
-        // document.getElementById('show_space_stations').checked = this.showSpaceStations;
+        document.getElementById('show_space_stations').checked = this.showSpaceStations;
 
         // Add checkbox event listeners
         document.getElementById('show_public_systems').addEventListener('change', (e) => {
@@ -68,11 +70,11 @@ class UniverseMap {
             this.draw();
         });
 
-        // document.getElementById('show_space_stations').addEventListener('change', (e) => {
-        //     this.showSpaceStations = e.target.checked;
-        //     localStorage.setItem('showSpaceStations', this.showSpaceStations);
-        //     this.draw();
-        // });
+        document.getElementById('show_space_stations').addEventListener('change', (e) => {
+            this.showSpaceStations = e.target.checked;
+            localStorage.setItem('showSpaceStations', this.showSpaceStations);
+            this.draw();
+        });
 
         // Set canvas size
         this.resizeCanvas();
@@ -500,80 +502,107 @@ class UniverseMap {
         }
 
         // Draw space station Voronoi regions if enabled
-        // if (this.showSpaceStations) {
-        //     // Use Voronoi from global scope (rhill-voronoi-core.min.js)
-        //     const voronoi = new Voronoi();
-        //     // Prepare sites for Voronoi
-        //     const sites = this.spaceStations.map((ss, i) => ({ x: ss.x, y: ss.y, voronoiId: i }));
-        //     // Bounding box for the universe
-        //     const bbox = { xl: 0, xr: 2000, yt: 0, yb: 2000 };
-        //     // Compute diagram
-        //     const diagram = voronoi.compute(sites, bbox);
-        //     // Colors for each SS (10 visually distinct, base RGB)
-        //     const baseColors = [
-        //         [79, 163, 255],    // blue
-        //         [255, 82, 82],     // red
-        //         [76, 175, 80],     // green
-        //         [255, 193, 7],     // yellow
-        //         [156, 39, 176],    // purple
-        //         [255, 152, 0],     // orange
-        //         [233, 30, 99],     // pink
-        //         [0, 188, 212],     // cyan
-        //         [121, 85, 72],     // brown
-        //         [158, 158, 158]    // gray
-        //     ];
-        //     // For each space station, draw its region and marker in the same color
-        //     for (let idx = 0; idx < this.spaceStations.length; idx++) {
-        //         const ss = this.spaceStations[idx];
-        //         const rgb = baseColors[idx % baseColors.length];
-        //         const regionColor = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 0.3)`;
-        //         const markerColor = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 1)`;
-        //         // Find the Voronoi cell for this station by matching coordinates
-        //         const cell = diagram.cells.find(cell => cell.site && Number(cell.site.x) === Number(ss.x) && Number(cell.site.y) === Number(ss.y));
-        //         if (cell && cell.halfedges.length) {
-        //             this.ctx.save();
-        //             // Clip to graph area (inside axes)
-        //             this.ctx.beginPath();
-        //             this.ctx.rect(padding.left, padding.top, graphWidth, graphHeight);
-        //             this.ctx.clip();
-        //             // Draw the region
-        //             this.ctx.beginPath();
-        //             cell.halfedges.forEach((he, i) => {
-        //                 const start = he.getStartpoint();
-        //                 const px = toPixelX(start.x);
-        //                 const py = toPixelY(start.y);
-        //                 if (i === 0) {
-        //                     this.ctx.moveTo(px, py);
-        //                 } else {
-        //                     this.ctx.lineTo(px, py);
-        //                 }
-        //             });
-        //             this.ctx.closePath();
-        //             this.ctx.fillStyle = regionColor;
-        //             this.ctx.fill();
-        //             this.ctx.restore();
-        //         }
-        //         // Draw SS marker
-        //         const px = toPixelX(ss.x);
-        //         const py = toPixelY(ss.y);
-        //         this.ctx.save();
-        //         this.ctx.beginPath();
-        //         this.ctx.arc(px, py, 5, 0, Math.PI * 2);
-        //         this.ctx.fillStyle = markerColor;
-        //         this.ctx.shadowColor = '#000';
-        //         this.ctx.shadowBlur = 8;
-        //         this.ctx.fill();
-        //         this.ctx.restore();
-        //         // Draw border
-        //         this.ctx.save();
-        //         this.ctx.beginPath();
-        //         this.ctx.arc(px, py, 5, 0, Math.PI * 2);
-        //         this.ctx.lineWidth = 3;
-        //         this.ctx.strokeStyle = '#fff';
-        //         this.ctx.stroke();
-        //         this.ctx.restore();
-        //     }
-        // }
+        if (this.showSpaceStations) {
+            // Colors for each SS (10 visually distinct, base RGB)
+            const baseColors = [
+                [79, 163, 255],    // blue
+                [255, 82, 82],     // red
+                [76, 175, 80],     // green
+                [255, 193, 7],     // yellow
+                [156, 39, 176],    // purple
+                [255, 152, 0],     // orange
+                [233, 30, 99],     // pink
+                [0, 188, 212],     // cyan
+                [121, 85, 72],     // brown
+                [158, 158, 158]    // gray
+            ];
+            // For each space station, draw its marker in the same color
+            for (let idx = 0; idx < this.squadronSpaceStations.length; idx++) {
+                const ss = this.squadronSpaceStations[idx];
+                const rgb = baseColors[idx % baseColors.length];
+                const markerColor = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 1)`;
+                const px = toPixelX(ss.x);
+                const py = toPixelY(ss.y);
+                // Only draw if within visible area and graph boundaries
+                if (px >= padding.left && px <= width - padding.right &&
+                    py >= padding.top && py <= height - padding.bottom) {
+                    this.ctx.save();
+                    this.ctx.beginPath();
+                    this.ctx.arc(px, py, 5, 0, Math.PI * 2);
+                    this.ctx.fillStyle = markerColor;
+                    this.ctx.shadowColor = '#000';
+                    this.ctx.shadowBlur = 8;
+                    this.ctx.fill();
+                    this.ctx.restore();
+                    // Draw border
+                    this.ctx.save();
+                    this.ctx.beginPath();
+                    this.ctx.arc(px, py, 5, 0, Math.PI * 2);
+                    this.ctx.lineWidth = 3;
+                    this.ctx.strokeStyle = '#fff';
+                    this.ctx.stroke();
+                    this.ctx.restore();
+                }
+            }
+        }
+
+        // Draw squadron space station tooltip if hovered
+        if (this.showSpaceStations && this.hoveredSpaceStation) {
+            const ss = this.hoveredSpaceStation;
+            const px = toPixelX(ss.x);
+            const py = toPixelY(ss.y);
+            
+            // Find the index of this space station to get its color
+            const ssIndex = this.squadronSpaceStations.findIndex(station => 
+                station.x === ss.x && station.y === ss.y && station.name === ss.name
+            );
+            
+            // Get the color for this space station
+            const baseColors = [
+                [79, 163, 255],    // blue
+                [255, 82, 82],     // red
+                [76, 175, 80],     // green
+                [255, 193, 7],     // yellow
+                [156, 39, 176],    // purple
+                [255, 152, 0],     // orange
+                [233, 30, 99],     // pink
+                [0, 188, 212],     // cyan
+                [121, 85, 72],     // brown
+                [158, 158, 158]    // gray
+            ];
+            const rgb = baseColors[ssIndex % baseColors.length];
+            const borderColor = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+            
+            // Tooltip content
+            const lines = [
+                `${ss.name}`,
+                `System: ${ss.system?.name || ''} (${ss.x}, ${ss.y})`,
+                `Battling boost: ${ss.battling_boost ?? 0}`,
+                `Income boost: ${ss.income_boost ?? ss.incomeboost ?? 0}`,
+                `Portal level: ${ss.portal ?? 0}`,
+                `Space portal: ${ss.space_portal ? 'Yes' : 'No'}`
+            ];
+            this.ctx.font = '13px Arial';
+            const textWidth = Math.max(...lines.map(line => this.ctx.measureText(line).width));
+            const tooltipX = px + 12;
+            const tooltipY = py - 10;
+            const tooltipHeight = lines.length * 18 + 10;
+            // Draw background
+            this.ctx.save();
+            this.ctx.fillStyle = 'rgba(35, 40, 58, 0.95)';
+            this.ctx.strokeStyle = borderColor;
+            this.ctx.lineWidth = 2;
+            this.ctx.beginPath();
+            this.ctx.roundRect(tooltipX - 7, tooltipY - 22, textWidth + 18, tooltipHeight, 7);
+            this.ctx.fill();
+            this.ctx.stroke();
+            // Draw text
+            this.ctx.fillStyle = '#e6eaf3';
+            for (let i = 0; i < lines.length; i++) {
+                this.ctx.fillText(lines[i], tooltipX, tooltipY + i * 18);
+            }
+            this.ctx.restore();
+        }
     }
 
     handleMouseMove(e) {
@@ -655,6 +684,28 @@ class UniverseMap {
             if (!found) {
                 this.hoveredSystem = null;
             }
+        }
+
+        // Check if mouse is over any squadron space station
+        if (this.showSpaceStations && this.squadronSpaceStations && this.squadronSpaceStations.length > 0) {
+            let foundSS = false;
+            for (const ss of this.squadronSpaceStations) {
+                const ssX = padding.left + ((ss.x - this.offsetX) / 2000) * graphWidth * this.zoomLevel;
+                const ssY = this.canvas.height - padding.bottom - ((ss.y - this.offsetY) / 2000) * graphHeight * this.zoomLevel;
+                const distance = Math.sqrt(Math.pow(x - ssX, 2) + Math.pow(y - ssY, 2));
+                if (distance < 10) {
+                    this.hoveredSpaceStation = ss;
+                    this.hoveredJourneyPoint = null;
+                    this.hoveredSystem = null;
+                    foundSS = true;
+                    break;
+                }
+            }
+            if (!foundSS) {
+                this.hoveredSpaceStation = null;
+            }
+        } else {
+            this.hoveredSpaceStation = null;
         }
 
         this.draw();
@@ -796,6 +847,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (journalData.fullJournal && journalData.fullJournal.length > 0) {
                     universeMap.setPlayerPosition(journalData.fullJournal[0]);
                     universeMap.setJournalData(journalData);
+                }
+
+                // Fetch user API for squadronSpaceStations
+                const userResponse = await fetch('https://api.stellarodyssey.app/api/public/user', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'sodyssey-api-key': apiKey
+                    }
+                });
+                if (userResponse.ok) {
+                    const userData = await userResponse.json();
+                    if (userData.data && userData.data.squadronSpaceStations && Array.isArray(userData.data.squadronSpaceStations)) {
+                        universeMap.squadronSpaceStations = userData.data.squadronSpaceStations.map(ss => ({
+                            ...ss,
+                            x: ss.system.coordinate_x,
+                            y: ss.system.coordinate_y
+                        }));
+                        universeMap.draw();
+                    }
                 }
                 
                 loadButton.disabled = false;

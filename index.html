@@ -1123,6 +1123,19 @@
                 nClonesInput.dispatchEvent(new Event('input'));
                 
                 saveSettings();
+                
+                // Handle squadron space stations
+                if (data.squadronSpaceStations && Array.isArray(data.squadronSpaceStations)) {
+                    const map = window.UniverseMap?.getInstance?.();
+                    if (map) {
+                        map.squadronSpaceStations = data.squadronSpaceStations.map(ss => ({
+                            ...ss,
+                            x: ss.system.coordinate_x,
+                            y: ss.system.coordinate_y
+                        }));
+                        map.draw();
+                    }
+                }
             }
             
             importBtn.addEventListener('click', async () => {
@@ -1705,10 +1718,10 @@
                                 <input type="checkbox" id="show_player_journey" style="margin: 0;">
                                 Show player journey
                             </label>
-                            <!-- <label style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
+                            <label style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
                                 <input type="checkbox" id="show_space_stations" style="margin: 0;">
-                                Show space stations and their region of influence
-                            </label> -->
+                                Show space stations
+                            </label>
                         </div>
                         <button id="loadSystemsBtn" type="button" style="background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; padding: 0.5em 1em; border-radius: 4px; cursor: pointer; width: 100%;">Load Systems</button>
                     </div>
