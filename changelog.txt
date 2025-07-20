@@ -1,3 +1,7 @@
+2025-07-20 20:00
+- Removed space stations region of influence
+- Changed space stations battle boost as per update
+
 2025-07-13 14:23
 - Added PvP fight simulator. Please refer to instruction on how to structure your squad JSON
 - Removed Space Station region of influence and added automatic plotting through API
