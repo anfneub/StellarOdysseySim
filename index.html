@@ -1096,15 +1096,19 @@
                 }
                 
                 // Handle spacestation battleboost
-                if (data.spacestation && data.spacestation.battling_boost) {
-                    form.battle_boost.value = data.spacestation.battling_boost;
+                if (data.squadron && data.squadron.buildings) {
+                    // Find Barracks building for battle boost
+                    const barracks = data.squadron.buildings.find(b => b.name === "Barracks");
+                    form.battle_boost.value = barracks ? barracks.level : 0;
                 } else {
                     form.battle_boost.value = 0;
                 }
                 
                 // Handle spacestation incomeboost
-                if (data.spacestation && data.spacestation.incomeboost) {
-                    form.income_boost.value = data.spacestation.incomeboost;
+                if (data.squadron && data.squadron.buildings) {
+                    // Find Amplifier building for income boost
+                    const amplifier = data.squadron.buildings.find(b => b.name === "Amplifier");
+                    form.income_boost.value = amplifier ? amplifier.level : 0;
                 } else {
                     form.income_boost.value = 0;
                 }
@@ -1943,7 +1947,7 @@
     <footer>
         <span>Proudly made by anfneub</span>
         <span style="margin-left: 2.5em;" id="lastUpdated"></span>
-        <span style="margin-left: 2.5em;">Space Odyssey Version 1.3.4 2025-07-02</span>
+        <span style="margin-left: 2.5em;">Space Odyssey Version 1.3.8 2025-07-21</span>
         <span style="margin-left: 2.5em; cursor: pointer; color: #4fa3ff; text-decoration: underline;" id="changelogLink">Changelog</span>
     </footer>
     
@@ -1991,8 +1995,8 @@
         if (lastUpdated) {
             const now = new Date();
             const pad = n => n.toString().padStart(2, '0');
-            const dateStr = "2025-07-20";
-            const timeStr = "20:00";
+            const dateStr = "2025-07-21";
+            const timeStr = "07:44";
             lastUpdated.textContent = `Last updated: ${dateStr} ${timeStr}`;
         }
     </script>

@@ -1,3 +1,6 @@
+2025-07-21 07:44
+- Changed API import to reflect changes on server. Now importing battle and income boost, as well as SS data, correctly
+
 2025-07-20 20:00
 - Removed space stations region of influence
 - Changed space stations battle boost as per update

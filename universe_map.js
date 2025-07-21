@@ -549,23 +549,23 @@ class UniverseMap {
                 // Only draw if within visible area and graph boundaries
                 if (px >= padding.left && px <= width - padding.right &&
                     py >= padding.top && py <= height - padding.bottom) {
-                    this.ctx.save();
-                    this.ctx.beginPath();
-                    this.ctx.arc(px, py, 5, 0, Math.PI * 2);
-                    this.ctx.fillStyle = markerColor;
-                    this.ctx.shadowColor = '#000';
-                    this.ctx.shadowBlur = 8;
-                    this.ctx.fill();
-                    this.ctx.restore();
-                    // Draw border
-                    this.ctx.save();
-                    this.ctx.beginPath();
-                    this.ctx.arc(px, py, 5, 0, Math.PI * 2);
-                    this.ctx.lineWidth = 3;
-                    this.ctx.strokeStyle = '#fff';
-                    this.ctx.stroke();
-                    this.ctx.restore();
-                }
+                this.ctx.save();
+                this.ctx.beginPath();
+                this.ctx.arc(px, py, 5, 0, Math.PI * 2);
+                this.ctx.fillStyle = markerColor;
+                this.ctx.shadowColor = '#000';
+                this.ctx.shadowBlur = 8;
+                this.ctx.fill();
+                this.ctx.restore();
+                // Draw border
+                this.ctx.save();
+                this.ctx.beginPath();
+                this.ctx.arc(px, py, 5, 0, Math.PI * 2);
+                this.ctx.lineWidth = 3;
+                this.ctx.strokeStyle = '#fff';
+                this.ctx.stroke();
+                this.ctx.restore();
+            }
             }
         }
 
@@ -600,8 +600,6 @@ class UniverseMap {
             const lines = [
                 `${ss.name}`,
                 `System: ${ss.system?.name || ''} (${ss.x}, ${ss.y})`,
-                `Battling boost: ${ss.battling_boost ?? 0}`,
-                `Income boost: ${ss.income_boost ?? ss.incomeboost ?? 0}`,
                 `Portal level: ${ss.portal ?? 0}`,
                 `Space portal: ${ss.space_portal ? 'Yes' : 'No'}`
             ];
