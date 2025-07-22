@@ -240,6 +240,19 @@ class UniverseMap {
     }
 
     draw() {
+        // Colors for each SS (10 visually distinct, base RGB)
+        const baseColors = [
+            [79, 163, 255],    // blue
+            [255, 82, 82],     // red
+            [76, 175, 80],     // green
+            [255, 193, 7],     // yellow
+            [156, 39, 176],    // purple
+            [255, 152, 0],     // orange
+            [233, 30, 99],     // pink
+            [0, 188, 212],     // cyan
+            [121, 85, 72],     // brown
+            [158, 158, 158]    // gray
+        ];
         // Throttle draw calls to max 60fps
         const now = performance.now();
         if (now - this._lastDrawTime < 16) {
@@ -448,8 +461,8 @@ class UniverseMap {
                 if (x >= padding.left && x <= width - padding.right &&
                     y >= padding.top && y <= height - padding.bottom) {
                     
-                    // Set color based on whether it's a starter system (first 9) or not
-                    ctx.fillStyle = index < 9 ? '#4CAF50' : '#FF5252';
+                    // Set color based on whether it's a starter system
+                    ctx.fillStyle = system.starter ? '#4CAF50' : '#FF5252';
                     
                     // Draw system point as a square (2x2 pixels)
                     const size = this.hoveredSystem === system ? 7 : 5;
@@ -526,47 +539,53 @@ class UniverseMap {
 
         // Draw space station Voronoi regions if enabled
         if (this.showSpaceStations) {
-            // Colors for each SS (10 visually distinct, base RGB)
-            const baseColors = [
-                [79, 163, 255],    // blue
-                [255, 82, 82],     // red
-                [76, 175, 80],     // green
-                [255, 193, 7],     // yellow
-                [156, 39, 176],    // purple
-                [255, 152, 0],     // orange
-                [233, 30, 99],     // pink
-                [0, 188, 212],     // cyan
-                [121, 85, 72],     // brown
-                [158, 158, 158]    // gray
-            ];
-            // For each space station, draw its marker in the same color
+            this.ctx.save();
+            this.ctx.beginPath();
+            // Define a clipping region to the graph area
+            this.ctx.rect(padding.left, padding.top, graphWidth, graphHeight);
+            this.ctx.clip();
+
+            // For each space station, draw its range circle and then its marker
             for (let idx = 0; idx < this.squadronSpaceStations.length; idx++) {
                 const ss = this.squadronSpaceStations[idx];
                 const rgb = baseColors[idx % baseColors.length];
-                const markerColor = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 1)`;
                 const px = toPixelX(ss.x);
                 const py = toPixelY(ss.y);
-                // Only draw if within visible area and graph boundaries
-                if (px >= padding.left && px <= width - padding.right &&
-                    py >= padding.top && py <= height - padding.bottom) {
-                    this.ctx.save();
-                    this.ctx.beginPath();
-                    this.ctx.arc(px, py, 5, 0, Math.PI * 2);
-                    this.ctx.fillStyle = markerColor;
-                    this.ctx.shadowColor = '#000';
-                    this.ctx.shadowBlur = 8;
-                    this.ctx.fill();
-                    this.ctx.restore();
-                    // Draw border
-                    this.ctx.save();
-                    this.ctx.beginPath();
-                    this.ctx.arc(px, py, 5, 0, Math.PI * 2);
-                    this.ctx.lineWidth = 3;
-                    this.ctx.strokeStyle = '#fff';
-                    this.ctx.stroke();
-                    this.ctx.restore();
+
+                // --- Draw range circle ---
+                const rangeLevel = ss.range ?? 0;
+                const rangeLy = 10 + rangeLevel;
+                // Convert range in light years to pixels on canvas
+                const radiusInPixels = (rangeLy / 2000) * graphWidth * this.zoomLevel;
+                const circleColor = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 0.3)`; // 60% transparent
+
+                this.ctx.beginPath();
+                this.ctx.arc(px, py, radiusInPixels, 0, Math.PI * 2);
+                this.ctx.fillStyle = circleColor;
+                this.ctx.fill();
+
+                // --- Draw marker on top ---
+                const markerColor = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 1)`;
+                this.ctx.save();
+                this.ctx.beginPath();
+                this.ctx.arc(px, py, 5, 0, Math.PI * 2);
+                this.ctx.fillStyle = markerColor;
+                this.ctx.shadowColor = '#000';
+                this.ctx.shadowBlur = 8;
+                this.ctx.fill();
+                this.ctx.restore();
+                
+                // Draw marker border
+                this.ctx.save();
+                this.ctx.beginPath();
+                this.ctx.arc(px, py, 5, 0, Math.PI * 2);
+                this.ctx.lineWidth = 3;
+                this.ctx.strokeStyle = '#fff';
+                this.ctx.stroke();
+                this.ctx.restore();
             }
-            }
+
+            this.ctx.restore(); // remove clipping
         }
 
         // Draw squadron space station tooltip if hovered
@@ -581,18 +600,6 @@ class UniverseMap {
             );
             
             // Get the color for this space station
-            const baseColors = [
-                [79, 163, 255],    // blue
-                [255, 82, 82],     // red
-                [76, 175, 80],     // green
-                [255, 193, 7],     // yellow
-                [156, 39, 176],    // purple
-                [255, 152, 0],     // orange
-                [233, 30, 99],     // pink
-                [0, 188, 212],     // cyan
-                [121, 85, 72],     // brown
-                [158, 158, 158]    // gray
-            ];
             const rgb = baseColors[ssIndex % baseColors.length];
             const borderColor = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
             
@@ -600,6 +607,9 @@ class UniverseMap {
             const lines = [
                 `${ss.name}`,
                 `System: ${ss.system?.name || ''} (${ss.x}, ${ss.y})`,
+                `Range level: ${ss.range ?? 0}`,
+                `Exploring level: ${ss.exploring ?? 0}`,
+                `Astronomiy level: ${ss.astronomy ?? 0}`,
                 `Portal level: ${ss.portal ?? 0}`,
                 `Space portal: ${ss.space_portal ? 'Yes' : 'No'}`
             ];

@@ -1,3 +1,7 @@
+2025-07-22 08:11
+- Added new elements to Space stations specific text display
+- Included visualization of range of space station in map 
+
 2025-07-21 07:44
 - Changed API import to reflect changes on server. Now importing battle and income boost, as well as SS data, correctly
 
