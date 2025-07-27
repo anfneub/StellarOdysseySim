@@ -146,12 +146,19 @@ class Optimizer {
         if (available_points < 0) {
             return [best_build, best_res];
         }
-        
-        for (let p = 0; p <= available_points; p++) {
+
+        const assumingpercent = 0.25;
+        const hcX0_pre = parseInt((assumingpercent * this.mob.pre) / (1 - assumingpercent));
+
+        for (let p = hcX0_pre; p <= available_points; p++) {
             const power = needed_power;
             const precision = p;
             const evasion = available_points - p;
             const hull = needed_hull;
+
+            if (evasion < 0) {
+                continue;
+            }
             
             const tmp_player = new Player({
                 power,
