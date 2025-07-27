@@ -539,11 +539,11 @@ class UniverseMap {
 
         // Draw space station Voronoi regions if enabled
         if (this.showSpaceStations) {
-            this.ctx.save();
-            this.ctx.beginPath();
+                    this.ctx.save();
+                    this.ctx.beginPath();
             // Define a clipping region to the graph area
-            this.ctx.rect(padding.left, padding.top, graphWidth, graphHeight);
-            this.ctx.clip();
+                    this.ctx.rect(padding.left, padding.top, graphWidth, graphHeight);
+                    this.ctx.clip();
 
             // For each space station, draw its range circle and then its marker
             for (let idx = 0; idx < this.squadronSpaceStations.length; idx++) {

@@ -620,11 +620,15 @@
                     n_fights = 1000000;
                     form.n_fights.value = 1000000;
                 }
-                
                 // Create player
                 const battle_boost = calculateBattleBoost(form.battle_boost?.value || 0);
+
+                const ignoreUnallocated = document.getElementById('ignore_unallocated')?.checked;
+                const availableStats = ignoreUnallocated ? 0 : (parseInt(document.getElementById('available').value) || 0);
+
+
                 const player = new Player({
-                    power, precision, evasion, hull, available: parseInt(document.getElementById('available').value) || 0, weapon_dmg, shield_def, n_clones, vip_status,
+                    power, precision, evasion, hull, available: availableStats, weapon_dmg, shield_def, n_clones, vip_status,
                     weapon_ele1, weapon_ele2, shield_ele1, shield_ele2, battle_boost
                 });
                 
@@ -716,11 +720,14 @@
                 const mob_level = parseInt(form.mob_level.value) || 1;
                 let mob_enum_key = Object.keys(MobName).find(key => MobName[key] === mob_name);
                 const mob = new Mob(MobName[mob_enum_key], mob_level);
-                
                 // Create player
                 const battle_boost = calculateBattleBoost(form.battle_boost?.value || 0);
+
+                const ignoreUnallocated = document.getElementById('ignore_unallocated')?.checked;
+                const availableStats = ignoreUnallocated ? 0 : (parseInt(document.getElementById('available').value) || 0);
+
                 const player = new Player({
-                    power, precision, evasion, hull, available: parseInt(document.getElementById('available').value) || 0, weapon_dmg, shield_def, n_clones, vip_status,
+                    power, precision, evasion, hull, available: availableStats, weapon_dmg, shield_def, n_clones, vip_status,
                     weapon_ele1, weapon_ele2, shield_ele1, shield_ele2, battle_boost
                 });
                 
@@ -852,12 +859,16 @@
                 if (result && result.bestStats && result.winChance !== undefined) {
                     const battle_boost = calculateBattleBoost(form.battle_boost?.value || 0);
                     const [power, precision, evasion, hull] = result.bestStats;
+
+                    const ignoreUnallocated = document.getElementById('ignore_unallocated')?.checked;
+                    const availableStats = ignoreUnallocated ? 0 : (parseInt(document.getElementById('available').value) || 0);
+
                     const tmp_player = new Player({
                         power,
                         precision,
                         evasion,
                         hull,
-                        available: parseInt(document.getElementById('available').value) || 0,
+                        available: availableStats,
                         weapon_dmg: player.weapon_dmg,
                         shield_def: player.shield_def,
                         n_clones: player.n_clones,
@@ -1026,7 +1037,9 @@
                     form.precision.value = data.stats.precision || 0;
                     form.evasion.value = data.stats.evasion || 0;
                     form.hull.value = data.stats.hull || 0;
-                    document.getElementById('available').value = data.stats.available || 0;
+                    if (!document.getElementById('ignore_unallocated')?.checked) {
+                        document.getElementById('available').value = data.stats.available || 0;
+                    }
                     
                     // Set the total stat pool
                     totalStatPool =
@@ -1549,6 +1562,12 @@
                                 <input type="radio" name="optimize_target" value="exp" style="margin-right: 5px;"> Experience
                             </label>
                         </div>
+                        <div class="form-row" style="margin-bottom: 0.5em;">
+                            <label style="display: flex; align-items: center;">
+                                <input type="checkbox" id="ignore_unallocated" name="ignore_unallocated" style="margin-right: 0.5em;">
+                                Ignore unallocated stats
+                            </label>
+                        </div>
                         <div class="form-row" style="margin-bottom: 1em;">
                             <div class="form-group">
                                 <label for="optimizer_htk">HTK:
@@ -1947,7 +1966,7 @@
     <footer>
         <span>Proudly made by anfneub</span>
         <span style="margin-left: 2.5em;" id="lastUpdated"></span>
-        <span style="margin-left: 2.5em;">Space Odyssey Version 1.3.9 2025-07-21</span>
+        <span style="margin-left: 2.5em;">Space Odyssey Version 1.3.11 2025-07-22</span>
         <span style="margin-left: 2.5em; cursor: pointer; color: #4fa3ff; text-decoration: underline;" id="changelogLink">Changelog</span>
     </footer>
     
@@ -1995,8 +2014,8 @@
         if (lastUpdated) {
             const now = new Date();
             const pad = n => n.toString().padStart(2, '0');
-            const dateStr = "2025-07-22";
-            const timeStr = "08:11";
+            const dateStr = "2025-07-27";
+            const timeStr = "11:34";
             lastUpdated.textContent = `Last updated: ${dateStr} ${timeStr}`;
         }
     </script>
