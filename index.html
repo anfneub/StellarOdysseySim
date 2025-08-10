@@ -180,6 +180,37 @@
             .form-row { flex-direction: column; }
             .clone-modifiers-section { margin-left: 0; }
         }
+        
+        /* Mobile responsive styles for universe map */
+        @media (max-width: 768px) {
+            #universe-map-tab > div {
+                flex-direction: column !important;
+                height: auto !important;
+                padding: 1em !important;
+                gap: 1em !important;
+            }
+            
+            #universe-map-tab > div > div:first-child {
+                min-width: auto !important;
+                max-width: none !important;
+                margin-top: 0 !important;
+                transform: none !important;
+            }
+            
+            #universe-map-tab > div > div:last-child {
+                width: 100% !important;
+                height: auto !important;
+                aspect-ratio: 1 !important;
+                max-width: 100vw !important;
+                max-height: 70vh !important;
+            }
+            
+            #universeMap {
+                width: 100% !important;
+                height: 100% !important;
+                aspect-ratio: 1 !important;
+            }
+        }
         .input-group .minus-btn,
         .input-group .plus-btn {
             width: 1.73em;
@@ -1716,7 +1747,7 @@
     </div>
     
     <div id="universe-map-tab" class="tab-content">
-        <div style="display: flex; flex-direction: row; padding: 2em; gap: 2em; height: 720px;">
+        <div style="display: flex; flex-direction: row; padding: 2em; gap: 2em; height: 720px; flex-wrap: wrap;">
             <div style="display: flex; flex-direction: column; gap: 1em; min-width: 400px; max-width: 400px; margin-top: 37vh; transform: translateY(-50%);">
                 <div style="background: #23283a; border-radius: 6px; border: 1px solid #2c3242; padding: 1.2em; box-sizing: border-box;">
                     <div style="font-size: 1.22em; font-weight: 700; margin-bottom: 1em; color: #f3f6fa; letter-spacing: 0.01em;">Discovered Universe</div>
@@ -1751,7 +1782,7 @@
             </div>
 
             <div style="position: relative; width: 720px; height: 720px; background: #181c24;">
-                <canvas id="universeMap" style="width: 100%; height: 100%;"></canvas>
+                <canvas id="universeMap" style="width: 100%; height: 100%; touch-action: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;"></canvas>
                 <!-- <div id="ssBlock" style="position: absolute; right: -500px; top: 75px; width: 300px; background: #23283a; border-radius: 6px; border: 1px solid #2c3242; padding: 1.2em; color: #e6eaf3; box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);">
                     <div class="block-label" style="margin-bottom: 1em;">Space Stations</div>
                     <div id="ssList"></div>

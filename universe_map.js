@@ -26,6 +26,18 @@ class UniverseMap {
         this.hoveredJourneyPoint = null;
         this.hoveredSpaceStation = null; // Added for squadron space stations
         
+        // Touch support variables
+        this.touchStartDistance = 0;
+        this.touchStartZoomLevel = 1;
+        this.touchStartOffsetX = 0;
+        this.touchStartOffsetY = 0;
+        this.touchStartCenterX = 0;
+        this.touchStartCenterY = 0;
+        this.isPinching = false;
+        this.lastTouchTime = 0;
+        this.touchStartX = 0;
+        this.touchStartY = 0;
+        
         // Load checkbox states from localStorage
         this.showPublicSystems = localStorage.getItem('showPublicSystems') === 'true';
         this.showCurrentPosition = localStorage.getItem('showCurrentPosition') === 'true';
@@ -85,6 +97,11 @@ class UniverseMap {
         this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
         this.canvas.addEventListener('mouseup', () => this.handleMouseUp());
         this.canvas.addEventListener('wheel', (e) => this.handleWheel(e));
+        
+        // Add touch event listeners for mobile support
+        this.canvas.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
+        this.canvas.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
+        this.canvas.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: false });
 
         this.paused = false;
         this.colorCache = new Map(); // Cache for journey point colors
@@ -98,17 +115,31 @@ class UniverseMap {
         const containerWidth = container.clientWidth;
         const containerHeight = container.clientHeight;
         
-        // Use the height as base and make width 15% larger
-        const height = Math.min(containerWidth / 1.18, containerHeight) * 1.18;
-        const width = height * 1.18;
+        // Check if we're on mobile (container width is the limiting factor)
+        const isMobile = containerWidth < 768;
         
-        // Set width and height
-        this.canvas.width = width;
-        this.canvas.height = height;
-        
-        // Ensure the canvas maintains its shape
-        this.canvas.style.width = `${width}px`;
-        this.canvas.style.height = `${height}px`;
+        if (isMobile) {
+            // On mobile, use the smaller dimension to ensure square aspect ratio
+            const size = Math.min(containerWidth, containerHeight, window.innerHeight * 0.7);
+            this.canvas.width = size;
+            this.canvas.height = size;
+            
+            // Set CSS to maintain square aspect ratio
+            this.canvas.style.width = `${size}px`;
+            this.canvas.style.height = `${size}px`;
+        } else {
+            // Desktop behavior - use the height as base and make width 15% larger
+            const height = Math.min(containerWidth / 1.18, containerHeight) * 1.18;
+            const width = height * 1.18;
+            
+            // Set width and height
+            this.canvas.width = width;
+            this.canvas.height = height;
+            
+            // Ensure the canvas maintains its shape
+            this.canvas.style.width = `${width}px`;
+            this.canvas.style.height = `${height}px`;
+        }
         
         this.draw();
     }
@@ -270,12 +301,7 @@ class UniverseMap {
         const ctx = this.ctx;
         const width = this.canvas.width;
         const height = this.canvas.height;
-        const padding = {
-            left: 40,
-            right: 140,
-            top: 25,
-            bottom: 25
-        };
+        const padding = this.getPadding();
         const graphWidth = width - padding.left - padding.right;
         const graphHeight = height - padding.top - padding.bottom;
 
@@ -640,12 +666,7 @@ class UniverseMap {
         const rect = this.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-        const padding = {
-            left: 40,
-            right: 140,
-            top: 25,
-            bottom: 25
-        };
+        const padding = this.getPadding();
         const graphWidth = this.canvas.width - padding.left - padding.right;
         const graphHeight = this.canvas.height - padding.top - padding.bottom;
 
@@ -760,12 +781,7 @@ class UniverseMap {
         const mouseY = e.clientY - rect.top;
         
         // Calculate the coordinate under the mouse before zoom
-        const padding = {
-            left: 40,
-            right: 140,
-            top: 25,
-            bottom: 25
-        };
+        const padding = this.getPadding();
         const graphWidth = this.canvas.width - padding.left - padding.right;
         const graphHeight = this.canvas.height - padding.top - padding.bottom;
         
@@ -802,6 +818,167 @@ class UniverseMap {
         this.offsetY = Math.max(0, Math.min(maxOffset, this.offsetY));
 
         this.draw();
+    }
+
+    handleTouchStart(e) {
+        if (e.touches.length === 2) {
+            this.isPinching = true;
+            this.touchStartDistance = this.getDistance(e.touches[0], e.touches[1]);
+            this.touchStartZoomLevel = this.zoomLevel;
+            this.touchStartOffsetX = this.offsetX;
+            this.touchStartOffsetY = this.offsetY;
+            this.touchStartCenterX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+            this.touchStartCenterY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        } else if (e.touches.length === 1) {
+            const currentTime = Date.now();
+            const timeDiff = currentTime - this.lastTouchTime;
+            
+            // Check for double tap (within 300ms)
+            if (timeDiff < 300 && timeDiff > 0) {
+                // Double tap detected - zoom in/out
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.touches[0].clientX - rect.left;
+                const y = e.touches[0].clientY - rect.top;
+                
+                if (this.zoomLevel > 1) {
+                    // Zoom out to fit all
+                    this.zoomLevel = 1;
+                    this.offsetX = 0;
+                    this.offsetY = 0;
+                } else {
+                    // Zoom in to 2x
+                    this.zoomLevel = 2;
+                    
+                    // Calculate the coordinate under the tap point
+                    const padding = this.getPadding();
+                    const graphWidth = this.canvas.width - padding.left - padding.right;
+                    const graphHeight = this.canvas.height - padding.top - padding.bottom;
+                    
+                    const coordX = this.offsetX + ((x - padding.left) / (graphWidth * 1)) * 2000;
+                    const coordY = this.offsetY + ((this.canvas.height - y - padding.bottom) / (graphHeight * 1)) * 2000;
+                    
+                    // Center the view on the tapped point
+                    this.offsetX = coordX - (graphWidth * this.zoomLevel / 2 / graphWidth) * 2000;
+                    this.offsetY = coordY - (graphHeight * this.zoomLevel / 2 / graphHeight) * 2000;
+                    
+                    // Ensure the offset stays within bounds
+                    const maxOffset = 2000 * (1 - 1/this.zoomLevel);
+                    this.offsetX = Math.max(0, Math.min(maxOffset, this.offsetX));
+                    this.offsetY = Math.max(0, Math.min(maxOffset, this.offsetY));
+                }
+                
+                this.draw();
+                this.lastTouchTime = 0; // Reset to prevent triple tap
+                return;
+            }
+            
+            this.lastTouchTime = currentTime;
+            this.isDragging = true;
+            this.lastX = e.touches[0].clientX - this.canvas.getBoundingClientRect().left;
+            this.lastY = e.touches[0].clientY - this.canvas.getBoundingClientRect().top;
+        }
+    }
+
+    handleTouchMove(e) {
+        e.preventDefault(); // Prevent default touch behavior
+        
+        if (this.isPinching && e.touches.length === 2) {
+            const currentDistance = this.getDistance(e.touches[0], e.touches[1]);
+            const zoomFactor = currentDistance / this.touchStartDistance;
+            const newZoomLevel = this.touchStartZoomLevel * zoomFactor;
+            
+            // Limit zoom levels
+            if (newZoomLevel < 1) {
+                this.zoomLevel = 1;
+                this.offsetX = 0;
+                this.offsetY = 0;
+            } else {
+                this.zoomLevel = Math.min(100, newZoomLevel);
+                
+                // Calculate the center point between the two touches
+                const currentCenterX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                const currentCenterY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                
+                // Calculate the coordinate under the center point before zoom
+                const rect = this.canvas.getBoundingClientRect();
+                const padding = this.getPadding();
+                const graphWidth = this.canvas.width - padding.left - padding.right;
+                const graphHeight = this.canvas.height - padding.top - padding.bottom;
+                
+                const coordX = this.touchStartOffsetX + ((currentCenterX - rect.left - padding.left) / (graphWidth * this.touchStartZoomLevel)) * 2000;
+                const coordY = this.touchStartOffsetY + ((this.canvas.height - (currentCenterY - rect.top) - padding.bottom) / (graphHeight * this.touchStartZoomLevel)) * 2000;
+                
+                // Calculate new offset to keep the point under the center in the same position
+                const newCoordX = this.offsetX + ((currentCenterX - rect.left - padding.left) / (graphWidth * this.zoomLevel)) * 2000;
+                const newCoordY = this.offsetY + ((this.canvas.height - (currentCenterY - rect.top) - padding.bottom) / (graphHeight * this.zoomLevel)) * 2000;
+                
+                this.offsetX += (coordX - newCoordX);
+                this.offsetY += (coordY - newCoordY);
+                
+                // Ensure the offset stays within bounds
+                const maxOffset = 2000 * (1 - 1/this.zoomLevel);
+                this.offsetX = Math.max(0, Math.min(maxOffset, this.offsetX));
+                this.offsetY = Math.max(0, Math.min(maxOffset, this.offsetY));
+            }
+            
+            this.draw();
+        } else if (this.isDragging && e.touches.length === 1) {
+            const rect = this.canvas.getBoundingClientRect();
+            const x = e.touches[0].clientX - rect.left;
+            const y = e.touches[0].clientY - rect.top;
+            
+            // Calculate the movement in coordinate space
+            const padding = this.getPadding();
+            const graphWidth = this.canvas.width - padding.left - padding.right;
+            const graphHeight = this.canvas.height - padding.top - padding.bottom;
+            
+            const dx = (x - this.lastX) / (graphWidth * this.zoomLevel) * 2000;
+            const dy = (y - this.lastY) / (graphHeight * this.zoomLevel) * 2000;
+            
+            // Update offset (negative because we want to move the map in the opposite direction of the drag)
+            this.offsetX -= dx;
+            this.offsetY += dy; // Positive because y-axis is inverted
+
+            // Ensure the offset stays within bounds
+            const maxOffset = 2000 * (1 - 1/this.zoomLevel);
+            this.offsetX = Math.max(0, Math.min(maxOffset, this.offsetX));
+            this.offsetY = Math.max(0, Math.min(maxOffset, this.offsetY));
+
+            this.lastX = x;
+            this.lastY = y;
+            this.draw();
+        }
+    }
+
+    handleTouchEnd(e) {
+        this.isPinching = false;
+        this.isDragging = false;
+    }
+
+    getDistance(touch1, touch2) {
+        const dx = touch1.clientX - touch2.clientX;
+        const dy = touch1.clientY - touch2.clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+    
+    getPadding() {
+        // Adjust padding based on screen size for better mobile experience
+        const isMobile = this.canvas.width < 768;
+        if (isMobile) {
+            return {
+                left: 35,
+                right: 80,
+                top: 30,
+                bottom: 30
+            };
+        } else {
+            return {
+                left: 60,
+                right: 160,
+                top: 40,
+                bottom: 40
+            };
+        }
     }
 }
 
