@@ -1,3 +1,6 @@
+2025-08-10 10:12
+- Added touch screen support for map
+
 2025-07-27 11:34
 - Long optimize will be slightly faster (thanks to Sakaki for the idea)
 - Added a new checkbox to ignore available unused stats to prevent unused stats on server to be imported multiple times
