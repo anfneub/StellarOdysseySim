@@ -25,7 +25,7 @@ class UniverseMap {
         this.journalData = null;
         this.hoveredJourneyPoint = null;
         this.hoveredSpaceStation = null; // Added for squadron space stations
-        
+                
         // Touch support variables
         this.touchStartDistance = 0;
         this.touchStartZoomLevel = 1;
@@ -128,7 +128,7 @@ class UniverseMap {
             this.canvas.style.width = `${size}px`;
             this.canvas.style.height = `${size}px`;
         } else {
-            // Desktop behavior - use the height as base and make width 15% larger
+            // Desktop behavior - use the height as base and make width 15% larger (+5% more)
             const height = Math.min(containerWidth / 1.18, containerHeight) * 1.18;
             const width = height * 1.18;
             
@@ -577,16 +577,17 @@ class UniverseMap {
                 const rgb = baseColors[idx % baseColors.length];
                 const px = toPixelX(ss.x);
                 const py = toPixelY(ss.y);
-
                 // --- Draw range circle ---
                 const rangeLevel = ss.range ?? 0;
                 const rangeLy = 10 + rangeLevel;
-                // Convert range in light years to pixels on canvas
-                const radiusInPixels = (rangeLy / 2000) * graphWidth * this.zoomLevel;
+                // Convert range in light years to pixels on canvas (handle non-square aspect ratio)
+                const radiusX = (rangeLy / 2000.0) * graphWidth * this.zoomLevel;
+                const radiusY = (rangeLy / 2000.0) * graphHeight * this.zoomLevel;
+
                 const circleColor = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 0.3)`; // 60% transparent
 
                 this.ctx.beginPath();
-                this.ctx.arc(px, py, radiusInPixels, 0, Math.PI * 2);
+                this.ctx.ellipse(px, py, radiusX, radiusY, 0, 0, Math.PI * 2);
                 this.ctx.fillStyle = circleColor;
                 this.ctx.fill();
 
@@ -610,7 +611,6 @@ class UniverseMap {
                 this.ctx.stroke();
                 this.ctx.restore();
             }
-
             this.ctx.restore(); // remove clipping
         }
 
