@@ -1,3 +1,6 @@
+2025-08-21 20:00
+- Fixed a bug about incorrectly displayed SS range 
+
 2025-08-10 10:12
 - Added touch screen support for map
 
