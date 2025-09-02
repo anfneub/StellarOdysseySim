@@ -220,8 +220,8 @@ class PvPBattle {
         return squad.squad.filter(clone => clone.current_hp > 0.0);
     }
 
-    do_one_attack(attacker, target) {
-        // Same as PvE, but no elemental bonus
+    do_one_attack(attacker, target, targetSquad) {
+        // Same as PvE, but no elemental bonus; supports overflow to next in lineup
         const attacker_hit_chance = attacker.pre / (attacker.pre + target.eva);
         let curr_dmg = attacker.dmg;
         const rng_attack = Math.random();
@@ -234,28 +234,49 @@ class PvPBattle {
                 // No elemental bonus
             }
             attacker.hit_counter += 1;
-            target.current_hp = Math.max(0.0, target.current_hp - curr_dmg);
-            if (this.verbose) {
-                console.log(`${attacker.name.value} attacks ${target.name.value} for ${curr_dmg.toFixed(2)} damage. ${target.name.value} is left with ${target.current_hp.toFixed(2)} HP.`);
-            }
+            this.apply_damage_chain(attacker, targetSquad, target, curr_dmg, false);
         } else if (this.verbose) {
             console.log(`${attacker.name.value} missed while attacking ${target.name.value}.`);
         }
 
         if (attacker instanceof Clone && attacker.dual_shot_chance > 0.0 && Math.random() < attacker.dual_shot_chance) {
-            const rng_attack = Math.random();
-            if (rng_attack < attacker_hit_chance) {
+            const rng_attack_dual = Math.random();
+            if (rng_attack_dual < attacker_hit_chance) {
                 curr_dmg = attacker.dmg;
                 if (Math.random() < attacker.crit_chance) {
                     curr_dmg *= (1 + attacker.crit_dmg);
                 }
                 attacker.hit_counter += 1;
-                target.current_hp = Math.max(0.0, target.current_hp - curr_dmg);
-                if (this.verbose) {
-                    console.log(`${attacker.name.value} DUAL attacks ${target.name.value} for ${curr_dmg.toFixed(2)} damage. ${target.name.value} is left with ${target.current_hp.toFixed(2)} HP.`);
-                }
+                this.apply_damage_chain(attacker, targetSquad, target, curr_dmg, true);
             } else if (this.verbose) {
                 console.log(`${attacker.name.value} missed DUAL attack to ${target.name.value}.`);
+            }
+        }
+    }
+
+    get_next_target_in_lineup(squad, fromIndex) {
+        const clones = squad.squad;
+        for (let i = fromIndex + 1; i < clones.length; i++) {
+            if (clones[i].current_hp > 0.0) return clones[i];
+        }
+        return null;
+    }
+
+    apply_damage_chain(attacker, targetSquad, initialTarget, totalDamage, isDual) {
+        const clones = targetSquad.squad;
+        let remainingDamage = totalDamage;
+        let target = initialTarget;
+        while (remainingDamage > 0 && target && target.current_hp > 0.0) {
+            const applied = Math.min(remainingDamage, target.current_hp);
+            target.current_hp = Math.max(0.0, target.current_hp - applied);
+            if (this.verbose) {
+                const tag = isDual ? 'DUAL ' : '';
+                console.log(`${attacker.name.value} ${tag}attacks ${target.name.value} for ${applied.toFixed(2)} damage. ${target.name.value} is left with ${target.current_hp.toFixed(2)} HP.`);
+            }
+            remainingDamage -= applied;
+            if (remainingDamage > 0) {
+                const idx = clones.indexOf(target);
+                target = this.get_next_target_in_lineup(targetSquad, idx);
             }
         }
     }
@@ -271,7 +292,7 @@ class PvPBattle {
                 living_attackers = this.get_living_clones(squad_attackers);
                 if (living_attackers.length === 0) break;
                 const target = living_attackers[Math.floor(Math.random() * living_attackers.length)];
-                this.do_one_attack(attacker, target);
+                this.do_one_attack(attacker, target, squad_attackers);
             }
             // Then attackers' living clones attack
             living_defenders = this.get_living_clones(squad_defenders);
@@ -280,7 +301,7 @@ class PvPBattle {
                 living_defenders = this.get_living_clones(squad_defenders);
                 if (living_defenders.length === 0) break;
                 const target = living_defenders[Math.floor(Math.random() * living_defenders.length)];
-                this.do_one_attack(attacker, target);
+                this.do_one_attack(attacker, target, squad_defenders);
             }
             round++;
         }

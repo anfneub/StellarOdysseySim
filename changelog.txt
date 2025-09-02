@@ -1,3 +1,6 @@
+2025-09-01 13:27
+- PvP battles now allows for excess damage to be transfered to nxt defender in line
+
 2025-08-21 20:00
 - Fixed a bug about incorrectly displayed SS range 
 

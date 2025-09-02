@@ -27,7 +27,7 @@ class Player {
         this.eva = Math.floor(evasion * (1.0 + boost));
         this.hp = Math.floor(((7.0 * this.hull) + shield_def) * (1.0 + boost));
         this.dmg = Math.floor((((7.0 * this.pow) + weapon_dmg) * this.n_clones) * (1.0 + boost));
-
+        
         if (this.mode === 'pvp') {
             this.hp = Math.floor(this.hp * 7.0 * this.n_clones);
             console.log(`${this.name} hp: ${this.hp}`);
