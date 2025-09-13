@@ -25,6 +25,7 @@ class UniverseMap {
         this.journalData = null;
         this.hoveredJourneyPoint = null;
         this.hoveredSpaceStation = null; // Added for squadron space stations
+        this.visible = this.getVisibleRange();
                 
         // Touch support variables
         this.touchStartDistance = 0;
@@ -107,6 +108,19 @@ class UniverseMap {
         this.colorCache = new Map(); // Cache for journey point colors
         this._lastDrawTime = 0;      // For throttling draw calls
         this._drawQueued = false;    // For throttling draw calls
+    }
+
+    getVisibleRange() {
+        const padding = { left: 40, right: 140, top: 25, bottom: 25 };
+        const graphWidth = this.canvas.width - padding.left - padding.right;
+        const graphHeight = this.canvas.height - padding.top - padding.bottom;
+        const visibleWidth = 2000 / this.zoomLevel;
+        const visibleHeight = 2000 / this.zoomLevel;
+        const left = this.offsetX;
+        const top = this.offsetY;
+        const right = left + visibleWidth;
+        const bottom = top + visibleHeight;
+        return { left, right, top, bottom };
     }
 
     resizeCanvas() {
@@ -298,6 +312,7 @@ class UniverseMap {
         }
         this._lastDrawTime = now;
         if (this.paused) return;
+        this.visible = this.getVisibleRange();
         const ctx = this.ctx;
         const width = this.canvas.width;
         const height = this.canvas.height;
@@ -480,6 +495,14 @@ class UniverseMap {
         // Draw systems if showPublicSystems is true
         if (this.showPublicSystems) {
             this.systems.forEach((system, index) => {
+
+                if (system.coordinate_x < this.visible.left ||
+                    system.coordinate_x > this.visible.right ||
+                    system.coordinate_y < this.visible.top ||
+                    system.coordinate_y > this.visible.bottom) { 
+                        return; 
+                }
+
                 const x = toPixelX(system.coordinate_x);
                 const y = toPixelY(system.coordinate_y);
 
@@ -518,6 +541,13 @@ class UniverseMap {
                 const [x, y] = coords.split(',').map(Number);
                 const pixelX = toPixelX(x);
                 const pixelY = toPixelY(y);
+
+                if (x < this.visible.left ||
+                    x > this.visible.right ||
+                    y < this.visible.top ||
+                    y > this.visible.bottom) {
+                    return; // This skips points that are NOT visible
+                }
 
                 // Only draw if within visible area and graph boundaries
                 if (pixelX >= padding.left && pixelX <= width - padding.right &&
@@ -563,7 +593,7 @@ class UniverseMap {
             });
         }
 
-        // Draw space station Voronoi regions if enabled
+        // Draw space station ellipses
         if (this.showSpaceStations) {
                     this.ctx.save();
                     this.ctx.beginPath();
@@ -1099,192 +1129,5 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('universe-map-tab').classList.contains('active')) {
         initializeMap();
     }
-    
-    // --- Space Stations UI logic ---
-    // const ssBlock = document.getElementById('ssBlock');
-    // if (!ssBlock) return;
-    // const ssListDiv = document.getElementById('ssList');
-    // const ssLoadBtn = document.getElementById('ssLoadBtn');
-
-    // // Use localStorage to persist SS list between reloads
-    // function getSavedSS() {
-    //     const saved = localStorage.getItem('spaceStationsList');
-    //     if (saved) {
-    //         try {
-    //             const arr = JSON.parse(saved);
-    //             if (Array.isArray(arr) && arr.length >= 1 && arr.length <= 10) {
-    //                 return arr;
-    //             }
-    //         } catch {}
-    //     }
-    //     // Default
-    //     return [ { x: 0, y: 0 } ];
-    // }
-    // function saveSS(list) {
-    //     localStorage.setItem('spaceStationsList', JSON.stringify(list));
-    // }
-
-    // let ssList = getSavedSS();
-
-    // function renderSSList() {
-    //     ssListDiv.innerHTML = '';
-    //     // Always at least one row
-    //     if (ssList.length === 0) ssList.push({ x: 0, y: 0 });
-    //     ssList.forEach((ss, idx) => {
-    //         const row = document.createElement('div');
-    //         row.style.display = 'flex';
-    //         row.style.alignItems = 'center';
-    //         row.style.gap = '0.5em';
-    //         row.style.marginBottom = '0.5em';
-    //         row.style.height = '2.2em';
-
-    //         // X field
-    //         const xInput = document.createElement('input');
-    //         xInput.type = 'number';
-    //         xInput.min = 0;
-    //         xInput.max = 2000;
-    //         xInput.value = ss.x;
-    //         xInput.style.width = '4.5em';
-    //         xInput.style.height = '2em';
-    //         xInput.style.background = '#36405a';
-    //         xInput.style.color = '#e6eaf3';
-    //         xInput.style.border = '1px solid #2c3242';
-    //         xInput.style.borderRadius = '4px';
-    //         xInput.style.padding = '0.2em';
-    //         xInput.style.boxSizing = 'border-box';
-    //         xInput.style.fontSize = '0.8em';
-    //         xInput.addEventListener('input', () => {
-    //             ssList[idx].x = xInput.value;
-    //         });
-
-    //         // Y field
-    //         const yInput = document.createElement('input');
-    //         yInput.type = 'number';
-    //         yInput.min = 0;
-    //         yInput.max = 2000;
-    //         yInput.value = ss.y;
-    //         yInput.style.width = '4.5em';
-    //         yInput.style.height = '2em';
-    //         yInput.style.background = '#36405a';
-    //         yInput.style.color = '#e6eaf3';
-    //         yInput.style.border = '1px solid #2c3242';
-    //         yInput.style.borderRadius = '4px';
-    //         yInput.style.padding = '0.2em';
-    //         yInput.style.boxSizing = 'border-box';
-    //         yInput.style.fontSize = '0.8em';
-    //         yInput.addEventListener('input', () => {
-    //             ssList[idx].y = yInput.value;
-    //         });
-
-    //         // Always append x and y input fields first
-    //         row.appendChild(xInput);
-    //         row.appendChild(yInput);
-    //         // Button logic: every row gets Remove if more than one row, last row also gets Add (unless max)
-    //         if (ssList.length > 1) {
-    //             const removeBtn = document.createElement('button');
-    //             removeBtn.textContent = 'Remove';
-    //             removeBtn.style.background = '#36405a';
-    //             removeBtn.style.color = '#e6eaf3';
-    //             removeBtn.style.border = '1px solid #2c3242';
-    //             removeBtn.style.borderRadius = '4px';
-    //             removeBtn.style.padding = '0.2em 0.7em';
-    //             removeBtn.style.height = '2em';
-    //             removeBtn.style.display = 'flex';
-    //             removeBtn.style.alignItems = 'center';
-    //             removeBtn.style.justifyContent = 'center';
-    //             removeBtn.style.fontSize = '0.8em';
-    //             removeBtn.style.marginTop = '+0px';
-    //             removeBtn.style.cursor = 'pointer';
-    //             removeBtn.onclick = function() {
-    //                 if (ssList.length > 1) {
-    //                     ssList.splice(idx, 1);
-    //                     renderSSList();
-    //                 }
-    //             };
-    //             row.appendChild(removeBtn);
-    //         }
-    //         if (idx === ssList.length - 1 && ssList.length < 10) {
-    //             const addBtn = document.createElement('button');
-    //             addBtn.textContent = 'Add';
-    //             addBtn.style.background = '#36405a';
-    //             addBtn.style.color = '#e6eaf3';
-    //             addBtn.style.border = '1px solid #2c3242';
-    //             addBtn.style.borderRadius = '4px';
-    //             addBtn.style.padding = '0.2em 0.7em';
-    //             addBtn.style.height = '2em';
-    //             addBtn.style.display = 'flex';
-    //             addBtn.style.alignItems = 'center';
-    //             addBtn.style.justifyContent = 'center';
-    //             addBtn.style.fontSize = '0.8em';
-    //             addBtn.style.marginTop = '+0px';
-    //             addBtn.style.cursor = 'pointer';
-    //             addBtn.onclick = function() {
-    //                 if (ssList.length < 10) {
-    //                     ssList.push({ x: 0, y: 0 });
-    //                     renderSSList();
-    //                 }
-    //             };
-    //             row.appendChild(addBtn);
-    //         }
-    //         ssListDiv.appendChild(row);
-    //     });
-    // }
-
-    // renderSSList();
-
-    // ssLoadBtn.onclick = function() {
-    //     // Animate the button (subtle opacity flash)
-    //     ssLoadBtn.style.transition = 'opacity 0.18s';
-    //     ssLoadBtn.style.opacity = '0.8';
-    //     setTimeout(() => {
-    //         ssLoadBtn.style.opacity = '1';
-    //     }, 180);
-    //     // Set button background and text color
-    //     ssLoadBtn.style.background = '#36405a';
-    //     ssLoadBtn.style.color = '#e6eaf3';
-
-    //     // Read all rows, only use those with valid numbers
-    //     const validSS = [];
-    //     const rows = ssListDiv.querySelectorAll('div');
-    //     rows.forEach((row, idx) => {
-    //         const inputs = row.querySelectorAll('input');
-    //         const x = Number(inputs[0].value);
-    //         const y = Number(inputs[1].value);
-    //         if (!isNaN(x) && !isNaN(y)) {
-    //             validSS.push({ x, y });
-    //         }
-    //     });
-    //     const map = UniverseMap.getInstance();
-    //     if (map) {
-    //         map.spaceStations = validSS;
-    //         map.draw();
-    //     }
-    //     // Always update ssList with the latest values from the form
-    //     ssList = validSS.length ? validSS : [{ x: 0, y: 0 }];
-    //     saveSS(ssList);
-    //     renderSSList();
-    // };
-
-    // ssLoadBtn.style.cursor = 'pointer';
-
-    // // Always update map.spaceStations and draw if showSpaceStations is checked, after UniverseMap is initialized
-    // setTimeout(() => {
-    //     const map = UniverseMap.getInstance();
-    //     if (map && map.showSpaceStations) {
-    //         const validSS = [];
-    //         const rows = ssListDiv.querySelectorAll('div');
-    //         rows.forEach((row) => {
-    //             const inputs = row.querySelectorAll('input');
-    //             if (inputs.length === 2) {
-    //                 const x = Number(inputs[0].value);
-    //                 const y = Number(inputs[1].value);
-    //                 if (!isNaN(x) && !isNaN(y)) {
-    //                     validSS.push({ x, y });
-    //         }
-    //     });
-    //         map.spaceStations = validSS;
-    //         map.draw();
-    //     }
-    // }, 0);
 }); 
  

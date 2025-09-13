@@ -1,3 +1,6 @@
+2025-09-13 11:30
+- Improved map efficiency by only displaying elements in current zoom (thanks to Sakaki for the idea)
+
 2025-09-01 13:27
 - PvP battles now allows for excess damage to be transfered to nxt defender in line
 
