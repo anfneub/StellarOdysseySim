@@ -73,7 +73,7 @@ class Battle {
             attacker.hit_counter += 1;
             target.current_hp = Math.max(0.0, target.current_hp - curr_dmg);
             if (this.verbose) {
-                console.log(`${attacker.name.value} attacks ${target.name.value} for ${curr_dmg.toFixed(2)} damage. ${target.name.value} is left with ${target.current_hp.toFixed(2)} HP.`);
+                (`${attacker.name.value} attacks ${target.name.value} for ${curr_dmg.toFixed(2)} damage. ${target.name.value} is left with ${target.current_hp.toFixed(2)} HP.`);
             }
         } else if (this.verbose) {
             console.log(`${attacker.name.value} missed while attacking ${target.name.value}.`);

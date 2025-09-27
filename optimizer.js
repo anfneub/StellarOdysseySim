@@ -53,8 +53,7 @@ class Optimizer {
         }
         
         const total_hp_to_have = (hits_to_die - 1) * this.mob.dmg + 1;
-        const remaining_hp = Math.max(0.0, total_hp_to_have - this.player.shield_def);
-        const needed_hull = Math.ceil(remaining_hp / 7.0);
+        const needed_hull = Math.ceil(Math.max(0.0, (total_hp_to_have / (1 + this.player.battle_boost) - this.player.shield_def) / (7.0 * (1 + this.player.battling_hull_boost))));
         
         let weapon1 = this.player.weapon_ele1, weapon2 = this.player.weapon_ele2;
         if ((weapon1 && (!weapon2 || weapon2 === 'None')) && weapon1 !== 'None') weapon2 = weapon1;
@@ -72,7 +71,7 @@ class Optimizer {
         }
         
         const total_attack_to_have = this.mob.hp / hits_to_kill + 1;
-        const needed_pow = Math.ceil(Math.max(0.0, (total_attack_to_have - this.player.n_clones * this.player.weapon_dmg * (1 + total_damage_modifier)) / (7.0 * this.player.n_clones * (1 + total_damage_modifier))));
+        const needed_pow = Math.ceil(Math.max(0.0, (total_attack_to_have / ((1 + this.player.battle_boost) * this.player.n_clones * (1 + total_damage_modifier)) - this.player.weapon_dmg) / (7.0 * (1 + this.player.battling_weapon_boost))));
         
         const nb_points = Math.floor(this.player.pow + this.player.pre_before_boost + this.player.eva_before_boost + this.player.hull + this.player.available);
         const available_points = nb_points - needed_pow - needed_hull;
@@ -96,7 +95,12 @@ class Optimizer {
                 weapon_ele2: this.player.weapon_ele2,
                 shield_ele1: this.player.shield_ele1,
                 shield_ele2: this.player.shield_ele2,
-                battle_boost: this.player.battle_boost
+                battle_boost: this.player.battle_boost,
+                battling_weapon_boost: this.player.battling_weapon_boost,
+                battling_hull_boost: this.player.battling_hull_boost,
+                battling_precision_boost: this.player.battling_precision_boost,
+                battling_evasion_boost: this.player.battling_evasion_boost
+
             });
             const battle = new Battle({ player: tmp_player, mob: this.mob, list_modifiers: this.list_modifiers });
             const win_chance = battle.repeat_fights(this.n_fights);
@@ -112,9 +116,8 @@ class Optimizer {
     
     findBestBuild(htd, htk, target = 'credits', verbose = false) {
                 
-        const total_hp_to_have = ((htd - 1) * this.mob.dmg + 1) / (1 + this.player.battle_boost);
-        const remaining_hp = Math.max(0.0, total_hp_to_have - this.player.shield_def);
-        const needed_hull = Math.ceil(remaining_hp / 7.0);
+        const total_hp_to_have = (htd - 1) * this.mob.dmg + 1;
+        const needed_hull = Math.ceil(Math.max(0.0, (total_hp_to_have / (1 + this.player.battle_boost) - this.player.shield_def) / (7.0 * (1 + this.player.battling_hull_boost))));
         
         let total_damage_modifier = 0.0;
         
@@ -132,9 +135,8 @@ class Optimizer {
             }
         }
         
-        const total_attack_to_have = (this.mob.hp / htk + 1) / (1 + this.player.battle_boost);
-        const player_dmg = this.player.n_clones * this.player.weapon_dmg * (1 + total_damage_modifier);
-        const needed_power = Math.ceil(Math.max(0.0, (total_attack_to_have - player_dmg) / (7.0 * this.player.n_clones * (1 + total_damage_modifier))));
+        const total_attack_to_have = this.mob.hp / htk + 1;
+        const needed_power = Math.ceil(Math.max(0.0, (total_attack_to_have / ((1 + this.player.battle_boost) * this.player.n_clones * (1 + total_damage_modifier)) - this.player.weapon_dmg) / (7.0 * (1 + this.player.battling_weapon_boost))));
         
         const nb_points = Math.floor(this.player.pow + this.player.pre_before_boost + this.player.eva_before_boost + this.player.hull + this.player.available);
         const available_points = nb_points - needed_power - needed_hull;
@@ -148,7 +150,7 @@ class Optimizer {
         }
 
         const assumingpercent = 0.25;
-        const hcX0_pre = parseInt((assumingpercent * this.mob.pre) / (1 - assumingpercent));
+        const hcX0_pre = parseInt((assumingpercent * this.mob.pre) / ((1 - assumingpercent) * (1 + this.player.battling_precision_boost)));
 
         for (let p = hcX0_pre; p <= available_points; p++) {
             const power = needed_power;
@@ -173,7 +175,12 @@ class Optimizer {
                 weapon_ele2: this.player.weapon_ele2,
                 shield_ele1: this.player.shield_ele1,
                 shield_ele2: this.player.shield_ele2,
-                battle_boost: this.player.battle_boost
+                battle_boost: this.player.battle_boost,
+                battling_weapon_boost: this.player.battling_weapon_boost,
+                battling_hull_boost: this.player.battling_hull_boost,
+                battling_precision_boost: this.player.battling_precision_boost,
+                battling_evasion_boost: this.player.battling_evasion_boost
+
             });
             
             const battle = new Battle({ player: tmp_player, mob: this.mob, list_modifiers: this.list_modifiers });
@@ -262,6 +269,10 @@ class Optimizer {
                 shield_ele1: this.player.shield_ele1,
                 shield_ele2: this.player.shield_ele2,
                 battle_boost: this.player.battle_boost,
+                battling_weapon_boost: this.player.battling_weapon_boost,
+                battling_hull_boost: this.player.battling_hull_boost,
+                battling_precision_boost: this.player.battling_precision_boost,
+                battling_evasion_boost: this.player.battling_evasion_boost
             },
             mob: {
                 name: this.mob.name,

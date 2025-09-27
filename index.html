@@ -399,6 +399,11 @@
                     income_boost: form.income_boost?.value || 0,
                     battle_boost: form.battle_boost?.value || 0,
                     reputation: form.reputation?.value || 0,
+                    // Technology buffs
+                    battling_weapon_boost: form.battling_weapon_boost?.value || 0,
+                    battling_hull_boost: form.battling_hull_boost?.value || 0,
+                    battling_precision_boost: form.battling_precision_boost?.value || 0,
+                    battling_evasion_boost: form.battling_evasion_boost?.value || 0,
                     // Clone modifiers
                     clone_modifiers: cloneModifiers,
                     // Resources calculator
@@ -627,7 +632,11 @@
                 const shield_ele1 = form.shield_ele1.value || null;
                 const shield_ele2 = form.shield_ele2.value || null;
                 const vip_status = form.vip_status.checked;
-                
+                const battling_weapon_boost = parseInt(form.battling_weapon_boost.value)/100 || 0;
+                const battling_hull_boost = parseInt(form.battling_hull_boost.value)/100 || 0;
+                const battling_precision_boost = parseInt(form.battling_precision_boost.value)/100 || 0;
+                const battling_evasion_boost = parseInt(form.battling_evasion_boost.value)/100 || 0;
+
                 // Gather clone modifiers
                 const list_modifiers = cloneModifiers.map(mod =>
                 new CloneModifiers(
@@ -660,7 +669,8 @@
 
                 const player = new Player({
                     power, precision, evasion, hull, available: availableStats, weapon_dmg, shield_def, n_clones, vip_status,
-                    weapon_ele1, weapon_ele2, shield_ele1, shield_ele2, battle_boost
+                    weapon_ele1, weapon_ele2, shield_ele1, shield_ele2, battle_boost, battling_weapon_boost, battling_hull_boost,
+                    battling_precision_boost, battling_evasion_boost
                 });
                 
                 // Create and run battle
@@ -736,6 +746,10 @@
                 const shield_ele1 = form.shield_ele1.value || null;
                 const shield_ele2 = form.shield_ele2.value || null;
                 const vip_status = form.vip_status.checked;
+                const battling_weapon_boost = parseInt(form.battling_weapon_boost.value)/100 || 0;
+                const battling_hull_boost = parseInt(form.battling_hull_boost.value)/100 || 0;
+                const battling_precision_boost = parseInt(form.battling_precision_boost.value)/100 || 0;
+                const battling_evasion_boost = parseInt(form.battling_evasion_boost.value)/100 || 0;
                 
                 // Gather clone modifiers
                 const list_modifiers = cloneModifiers.map(mod =>
@@ -759,7 +773,8 @@
 
                 const player = new Player({
                     power, precision, evasion, hull, available: availableStats, weapon_dmg, shield_def, n_clones, vip_status,
-                    weapon_ele1, weapon_ele2, shield_ele1, shield_ele2, battle_boost
+                    weapon_ele1, weapon_ele2, shield_ele1, shield_ele2, battle_boost, battling_weapon_boost, battling_hull_boost, 
+                    battling_precision_boost, battling_evasion_boost
                 });
                 
                 const optimizerFightsInput = document.getElementById('optimizer_n_fights');
@@ -908,8 +923,13 @@
                         weapon_ele2: player.weapon_ele2,
                         shield_ele1: player.shield_ele1,
                         shield_ele2: player.shield_ele2,
-                        battle_boost: battle_boost
+                        battle_boost: battle_boost,
+                        battling_weapon_boost: player.battling_weapon_boost,
+                        battling_hull_boost: player.battling_hull_boost,
+                        battling_precision_boost: player.battling_precision_boost,
+                        battling_evasion_boost: player.battling_evasion_boost
                     });
+
                     const battle = new Battle({ player: tmp_player, mob: mob, list_modifiers: list_modifiers });
                     
                     // Get income boost and reputation values
@@ -1162,6 +1182,19 @@
                     form.reputation.value = data.reputation;
                 } else {
                     form.reputation.value = 0;
+                }
+                
+                // Handle skills (battling boosts)
+                if (data.skills) {
+                    form.battling_weapon_boost.value = data.skills.battling_weapon_boost || 0;
+                    form.battling_hull_boost.value = data.skills.battling_hull_boost || 0;
+                    form.battling_precision_boost.value = data.skills.battling_precision_boost || 0;
+                    form.battling_evasion_boost.value = data.skills.battling_evasion_boost || 0;
+                } else {
+                    form.battling_weapon_boost.value = 0;
+                    form.battling_hull_boost.value = 0;
+                    form.battling_precision_boost.value = 0;
+                    form.battling_evasion_boost.value = 0;
                 }
                 
                 // Render clone modifiers with the new data
@@ -1541,6 +1574,48 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="mob-block" style="width: 420px; min-width: 420px; max-width: 420px;">
+                    <div class="block-label">Technology Buffs</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="battling_weapon_boost">Weapon Boost:</label>
+                            <div class="input-group">
+                                <button type="button" class="minus-btn" data-target="battling_weapon_boost">-</button>
+                                <input type="number" id="battling_weapon_boost" name="battling_weapon_boost" value="0" min="0" style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">%
+                                <button type="button" class="plus-btn" data-target="battling_weapon_boost">+</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="battling_hull_boost">Hull Boost:</label>
+                            <div class="input-group">
+                                <button type="button" class="minus-btn" data-target="battling_hull_boost">-</button>
+                                <input type="number" id="battling_hull_boost" name="battling_hull_boost" value="0" min="0" style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">%
+                                <button type="button" class="plus-btn" data-target="battling_hull_boost">+</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="battling_precision_boost">Precision Boost:</label>
+                            <div class="input-group">
+                                <button type="button" class="minus-btn" data-target="battling_precision_boost">-</button>
+                                <input type="number" id="battling_precision_boost" name="battling_precision_boost" value="0" min="0" style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">%
+                                <button type="button" class="plus-btn" data-target="battling_precision_boost">+</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="battling_evasion_boost">Evasion Boost:</label>
+                            <div class="input-group">
+                                <button type="button" class="minus-btn" data-target="battling_evasion_boost">-</button>
+                                <input type="number" id="battling_evasion_boost" name="battling_evasion_boost" value="0" min="0" style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">%
+                                <button type="button" class="plus-btn" data-target="battling_evasion_boost">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
             </div>
             <div style="display: flex; flex-direction: row; align-items: flex-start;">
                 <div style="position: relative; width: fit-content;">
@@ -1997,7 +2072,7 @@
     <footer>
         <span>Proudly made by anfneub</span>
         <span style="margin-left: 2.5em;" id="lastUpdated"></span>
-        <span style="margin-left: 2.5em;">Space Odyssey Version 1.4.8 2025-09-02</span>
+        <span style="margin-left: 2.5em;">Space Odyssey Version 1.5.0 - Base building 2025-09-19</span>
         <span style="margin-left: 2.5em; cursor: pointer; color: #4fa3ff; text-decoration: underline;" id="changelogLink">Changelog</span>
     </footer>
     
@@ -2045,8 +2120,8 @@
         if (lastUpdated) {
             const now = new Date();
             const pad = n => n.toString().padStart(2, '0');
-            const dateStr = "2025-09-13";
-            const timeStr = "11:30";
+            const dateStr = "2025-09-27";
+            const timeStr = "18:55";
             lastUpdated.textContent = `Last updated: ${dateStr} ${timeStr}`;
         }
     </script>

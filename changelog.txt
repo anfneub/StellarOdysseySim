@@ -1,3 +1,6 @@
+2025-09-27 18:55
+- Included Technology boosts into sim and optimizer
+
 2025-09-13 11:30
 - Improved map efficiency by only displaying elements in current zoom (thanks to Sakaki for the idea)
 
