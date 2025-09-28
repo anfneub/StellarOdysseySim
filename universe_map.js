@@ -25,6 +25,7 @@ class UniverseMap {
         this.journalData = null;
         this.hoveredJourneyPoint = null;
         this.hoveredSpaceStation = null; // Added for squadron space stations
+        this.hoveredEnemyStation = null; // Added for enemy stations
         this.visible = this.getVisibleRange();
                 
         // Touch support variables
@@ -44,7 +45,9 @@ class UniverseMap {
         this.showCurrentPosition = localStorage.getItem('showCurrentPosition') === 'true';
         this.showPlayerJourney = localStorage.getItem('showPlayerJourney') === 'true';
         this.showSpaceStations = localStorage.getItem('showSpaceStations') === 'true';
+        this.showEnemyStations = localStorage.getItem('showEnemyStations') === 'true';
         this.squadronSpaceStations = [];
+        this.enemyStations = [];
         
         // Space station coordinates (hardcoded)
         // this.spaceStations = [];
@@ -54,6 +57,7 @@ class UniverseMap {
         document.getElementById('show_current_position').checked = this.showCurrentPosition;
         document.getElementById('show_player_journey').checked = this.showPlayerJourney;
         document.getElementById('show_space_stations').checked = this.showSpaceStations;
+        document.getElementById('show_enemy_stations').checked = this.showEnemyStations;
 
         // Add checkbox event listeners
         document.getElementById('show_public_systems').addEventListener('change', (e) => {
@@ -86,6 +90,12 @@ class UniverseMap {
         document.getElementById('show_space_stations').addEventListener('change', (e) => {
             this.showSpaceStations = e.target.checked;
             localStorage.setItem('showSpaceStations', this.showSpaceStations);
+            this.draw();
+        });
+
+        document.getElementById('show_enemy_stations').addEventListener('change', (e) => {
+            this.showEnemyStations = e.target.checked;
+            localStorage.setItem('showEnemyStations', this.showEnemyStations);
             this.draw();
         });
 
@@ -644,6 +654,40 @@ class UniverseMap {
             this.ctx.restore(); // remove clipping
         }
 
+        // Draw enemy stations as blue circular markers
+        if (this.showEnemyStations && this.enemyStations && this.enemyStations.length > 0) {
+            this.ctx.save();
+            this.ctx.beginPath();
+            // Define a clipping region to the graph area
+            this.ctx.rect(padding.left, padding.top, graphWidth, graphHeight);
+            this.ctx.clip();
+
+            // Draw each enemy station as a blue circle
+            for (const station of this.enemyStations) {
+                const px = toPixelX(station.x);
+                const py = toPixelY(station.y);
+                
+                // Only draw if within visible area and graph boundaries
+                if (px >= padding.left && px <= width - padding.right &&
+                    py >= padding.top && py <= height - padding.bottom) {
+                    
+                    // Draw dark blue circle for enemy station with white contour
+                    this.ctx.beginPath();
+                    this.ctx.arc(px, py, 3, 0, Math.PI * 2);
+                    this.ctx.fillStyle = '#1e3a8a'; // Dark blue color
+                    this.ctx.fill();
+                    
+                    // Draw white contour
+                    this.ctx.beginPath();
+                    this.ctx.arc(px, py, 3, 0, Math.PI * 2);
+                    this.ctx.strokeStyle = '#ffffff';
+                    this.ctx.lineWidth = 1;
+                    this.ctx.stroke();
+                }
+            }
+            this.ctx.restore(); // remove clipping
+        }
+
         // Draw squadron space station tooltip if hovered
         if (this.showSpaceStations && this.hoveredSpaceStation) {
             const ss = this.hoveredSpaceStation;
@@ -683,6 +727,42 @@ class UniverseMap {
             this.ctx.roundRect(tooltipX - 7, tooltipY - 22, textWidth + 18, tooltipHeight, 7);
             this.ctx.fill();
             this.ctx.stroke();
+            // Draw text
+            this.ctx.fillStyle = '#e6eaf3';
+            for (let i = 0; i < lines.length; i++) {
+                this.ctx.fillText(lines[i], tooltipX, tooltipY + i * 18);
+            }
+            this.ctx.restore();
+        }
+
+        // Draw enemy station tooltip if hovered
+        if (this.showEnemyStations && this.hoveredEnemyStation) {
+            const station = this.hoveredEnemyStation;
+            const px = toPixelX(station.x);
+            const py = toPixelY(station.y);
+            
+            // Tooltip content
+            const lines = [
+                `Enemy Station: ${station.name}`,
+                `Squadron: ${station.squadron}`,
+                `Coordinates: (${station.x}, ${station.y})`
+            ];
+            this.ctx.font = '13px Arial';
+            const textWidth = Math.max(...lines.map(line => this.ctx.measureText(line).width));
+            const tooltipX = px + 12;
+            const tooltipY = py - 10;
+            const tooltipHeight = lines.length * 18 + 10;
+            
+            // Draw background
+            this.ctx.save();
+            this.ctx.fillStyle = 'rgba(35, 40, 58, 0.95)';
+            this.ctx.strokeStyle = '#1e3a8a'; // Blue border for enemy stations
+            this.ctx.lineWidth = 2;
+            this.ctx.beginPath();
+            this.ctx.roundRect(tooltipX - 7, tooltipY - 22, textWidth + 18, tooltipHeight, 7);
+            this.ctx.fill();
+            this.ctx.stroke();
+            
             // Draw text
             this.ctx.fillStyle = '#e6eaf3';
             for (let i = 0; i < lines.length; i++) {
@@ -788,6 +868,29 @@ class UniverseMap {
             }
         } else {
             this.hoveredSpaceStation = null;
+        }
+
+        // Check if mouse is over any enemy station
+        if (this.showEnemyStations && this.enemyStations && this.enemyStations.length > 0) {
+            let foundEnemyStation = false;
+            for (const station of this.enemyStations) {
+                const stationX = padding.left + ((station.x - this.offsetX) / 2000) * graphWidth * this.zoomLevel;
+                const stationY = this.canvas.height - padding.bottom - ((station.y - this.offsetY) / 2000) * graphHeight * this.zoomLevel;
+                const distance = Math.sqrt(Math.pow(x - stationX, 2) + Math.pow(y - stationY, 2));
+                if (distance < 10) {
+                    this.hoveredEnemyStation = station;
+                    this.hoveredJourneyPoint = null;
+                    this.hoveredSystem = null;
+                    this.hoveredSpaceStation = null;
+                    foundEnemyStation = true;
+                    break;
+                }
+            }
+            if (!foundEnemyStation) {
+                this.hoveredEnemyStation = null;
+            }
+        } else {
+            this.hoveredEnemyStation = null;
         }
 
         this.draw();
@@ -1102,8 +1205,31 @@ document.addEventListener('DOMContentLoaded', () => {
                             x: ss.system.coordinate_x,
                             y: ss.system.coordinate_y
                         }));
-                        universeMap.draw();
                     }
+                    
+                    // Load stations data and filter enemy stations
+                    const stationsResponse = await fetch('https://api.stellarodyssey.app/api/public/stations', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'sodyssey-api-key': apiKey
+                        }
+                    });
+                    
+                    if (stationsResponse.ok) {
+                        const stationsData = await stationsResponse.json();
+                        const userSquadron = userData.data.squadron?.name;
+                        
+                        // Filter out user's own squadron stations, keep only enemy stations
+                        if (stationsData.stations && userSquadron) {
+                            universeMap.enemyStations = stationsData.stations.filter(station => 
+                                station.squadron !== userSquadron
+                            );
+                        } else {
+                            universeMap.enemyStations = [];
+                        }
+                    }
+                    
+                    universeMap.draw();
                 }
                 
                 loadButton.disabled = false;

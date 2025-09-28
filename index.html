@@ -1079,7 +1079,105 @@
                 }
             }
             
-            function updateFormWithUserData(userData) {
+            async function fetchStationsData(apiKey) {
+                try {
+                    const response = await axios({
+                        method: 'get',
+                        url: 'https://api.stellarodyssey.app/api/public/stations',
+                        headers: {
+                            'Accept': 'application/json',
+                            'sodyssey-api-key': apiKey
+                        },
+                        timeout: 5000
+                    });
+                    return response.data;
+                } catch (error) {
+                    let errorMessage = 'Failed to fetch stations data. ';
+                    
+                    if (error.response) {
+                        if (error.response.status === 401) {
+                            errorMessage += 'Invalid API key.';
+                        } else if (error.response.status === 404) {
+                            errorMessage += 'Stations not found.';
+                        } else {
+                            errorMessage += `Server responded with status ${error.response.status}.`;
+                        }
+                    } else if (error.code === 'ECONNABORTED') {
+                        errorMessage += 'Request timed out.';
+                    } else if (error.code === 'ERR_NETWORK') {
+                        if (error.message.includes('CORS')) {
+                            errorMessage += 'CORS error: The API server is not configured to allow requests from this domain. Please contact the API administrators.';
+                        } else {
+                            errorMessage += 'Network error. Please check your internet connection.';
+                        }
+                    } else {
+                        errorMessage += error.message;
+                    }
+                    
+                    throw new Error(errorMessage);
+                }
+            }
+            
+            function checkUserLocationAtStation(userData, stationsData) {
+                if (!userData.data.currentSystem || !stationsData.stations) {
+                    return { station: null, isEnemyStation: false };
+                }
+                
+                const currentSystem = userData.data.currentSystem;
+                const userX = currentSystem.coordinate_x;
+                const userY = currentSystem.coordinate_y;
+                const userZ = currentSystem.coordinate_z;
+                
+                // Find station at the same coordinates
+                const stationAtLocation = stationsData.stations.find(station => 
+                    station.x === userX && 
+                    station.y === userY && 
+                    station.z === userZ
+                );
+                
+                if (!stationAtLocation) {
+                    return { station: null, isEnemyStation: false };
+                }
+                
+                // Check if it's an enemy station
+                const userSquadron = userData.data.squadron?.name;
+                const isEnemyStation = userSquadron && stationAtLocation.squadron !== userSquadron;
+                
+                return { 
+                    station: stationAtLocation, 
+                    isEnemyStation: isEnemyStation 
+                };                
+            }
+            
+            function createStationInfoElement() {
+                const stationInfo = document.createElement('div');
+                stationInfo.id = 'stationInfo';
+                stationInfo.style.display = 'none';
+                
+                // Find the API block and append the station info after it
+                const apiBlock = document.querySelector('.api-block');
+                if (apiBlock && apiBlock.parentNode) {
+                    apiBlock.parentNode.insertBefore(stationInfo, apiBlock.nextSibling);
+                }
+                
+                return stationInfo;
+            }
+            
+            function createEnemySquadronWarningElement() {
+                const warningInfo = document.createElement('div');
+                warningInfo.id = 'enemySquadronWarning';
+                warningInfo.style.display = 'none';
+                
+                // Find the API block and append the warning after it
+                const apiBlock = document.querySelector('.api-block');
+                if (apiBlock && apiBlock.parentNode) {
+                    apiBlock.parentNode.insertBefore(warningInfo, apiBlock.nextSibling);
+                }
+                
+                return warningInfo;
+            }
+            
+            function updateFormWithUserData(userData, stationsData = null) {
                 const data = userData.data;
                 
                 // Update form fields with API data
@@ -1203,6 +1301,42 @@
                 const nClonesInput = document.getElementById('n_clones');
                 nClonesInput.dispatchEvent(new Event('input'));
                 
+                // Check if user is at a station and display information
+                if (stationsData) {
+                    const stationResult = checkUserLocationAtStation(userData, stationsData);
+                    const stationAtLocation = stationResult.station;
+                    const isEnemyStation = stationResult.isEnemyStation;
+                    
+                    if (stationAtLocation) {
+
+                        // Display enemy squadron warning if applicable
+                        if (isEnemyStation) {
+                            const warningInfo = document.getElementById('enemySquadronWarning') || createEnemySquadronWarningElement();
+                            warningInfo.innerHTML = `
+                                <div style="background: #4a2a2a; border: 1px solid #7c4a4a; border-radius: 4px; padding: 0.5em; margin-top: 1.0em; margin-left: 0.3em; color: #e6eaf3; line-height: 1.4;">
+                                    <strong>⚠️ WARNING:</strong><br>
+                                    You are currently located in a system controlled by an enemy squadron.<br>
+                                    Your own squadron bonuses are nullified in this system.<br>
+                                    If you still want to use the simulator, manually set the Squadron Buffs to 0
+                                </div>
+                            `;
+                            warningInfo.style.display = 'block';
+                        } else {
+                            // Hide enemy warning if not at enemy station
+                            const warningInfo = document.getElementById('enemySquadronWarning');
+                            if (warningInfo) {
+                                warningInfo.style.display = 'none';
+                            }
+                        }
+                    } else {
+                        // Hide warning if not at a station
+                        const warningInfo = document.getElementById('enemySquadronWarning');
+                        if (warningInfo) {
+                            warningInfo.style.display = 'none';
+                        }
+                    }
+                }
+                
                 saveSettings();
                 
                 // Handle squadron space stations
@@ -1230,8 +1364,13 @@
                     importBtn.disabled = true;
                     importBtn.textContent = 'Importing...';
                     
-                    const userData = await fetchUserData(apiKey);
-                    updateFormWithUserData(userData);
+                    // Fetch both user data and stations data in parallel
+                    const [userData, stationsData] = await Promise.all([
+                        fetchUserData(apiKey),
+                        fetchStationsData(apiKey)
+                    ]);
+                    
+                    updateFormWithUserData(userData, stationsData);
                     
                     importBtn.disabled = false;
                     importBtn.textContent = 'Import';
@@ -1629,7 +1768,7 @@
                 <div style="display: flex; flex-direction: column; align-items: flex-start; margin-left: 7.5em;">
                     <div class="api-block" style="margin-top: 0; margin-left: 5px; min-height: 110px; max-height: 110px; width: 450px; min-width: 450px; max-width: 450px; background: #23283a; border-radius: 6px; border: 1px solid #2c3242; padding: 0.7em 1.2em 0.5em 1.2em; box-sizing: border-box;">
                         <div class="block-label">Import data
-                            <span style="color: #4fa3ff; margin-left: 5px; cursor: help;" title="Import your player, mob and clone stats using your API key. This will automatically fill in all your current stats. Your API key is located in Settings">ⓘ</span>
+                            <span style="color: #4fa3ff; margin-left: 5px; cursor: help;" title="Import your player, mob and clone stats using your API key. This will automatically fill in all your current stats and check if you're currently in a system with an enemy station. Your API key is located in Settings">ⓘ</span>
                         </div>
                         <div class="form-row">
                             <div class="form-group" style="flex: 1;">
@@ -1848,7 +1987,11 @@
                             </label>
                             <label style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
                                 <input type="checkbox" id="show_space_stations" style="margin: 0;">
-                                Show space stations
+                                Show own space stations
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
+                                <input type="checkbox" id="show_enemy_stations" style="margin: 0;">
+                                Show enemy space stations
                             </label>
                         </div>
                         <button id="loadSystemsBtn" type="button" style="background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; padding: 0.5em 1em; border-radius: 4px; cursor: pointer; width: 100%;">Load Systems</button>
@@ -2120,8 +2263,8 @@
         if (lastUpdated) {
             const now = new Date();
             const pad = n => n.toString().padStart(2, '0');
-            const dateStr = "2025-09-27";
-            const timeStr = "18:55";
+            const dateStr = "2025-09-28";
+            const timeStr = "18:45";
             lastUpdated.textContent = `Last updated: ${dateStr} ${timeStr}`;
         }
     </script>
