@@ -19,14 +19,20 @@ class UniverseMap {
         this.zoomCenterX = 0;
         this.zoomCenterY = 0;
         this.playerPosition = null;
-        this.pulseAnimation = null;
-        this.pulsePhase = 0;
-        this.ripples = [];
+        this.voyagerPosition = null;
         this.journalData = null;
         this.hoveredJourneyPoint = null;
         this.hoveredSpaceStation = null; // Added for squadron space stations
         this.hoveredEnemyStation = null; // Added for enemy stations
         this.visible = this.getVisibleRange();
+
+        this.userIcon = new Image();
+        this.userIcon.src = 'icons/user.png';
+        this.userIcon.onload = () => this.draw();
+
+        this.voyagerIcon = new Image();
+        this.voyagerIcon.src = 'icons/satellite.png';
+        this.voyagerIcon.onload = () => this.draw();
                 
         // Touch support variables
         this.touchStartDistance = 0;
@@ -69,16 +75,7 @@ class UniverseMap {
         document.getElementById('show_current_position').addEventListener('change', (e) => {
             this.showCurrentPosition = e.target.checked;
             localStorage.setItem('showCurrentPosition', this.showCurrentPosition);
-            if (this.showCurrentPosition && this.playerPosition) {
-                this.startPulseAnimation();
-            } else {
-                if (this.pulseAnimation) {
-                    cancelAnimationFrame(this.pulseAnimation);
-                    this.pulseAnimation = null;
-                }
-                this.ripples = [];
-                this.draw();
-            }
+            this.draw(); // Just redraw, no pulse animation
         });
 
         document.getElementById('show_player_journey').addEventListener('change', (e) => {
@@ -180,11 +177,7 @@ class UniverseMap {
 
     setPlayerPosition(position) {
         this.playerPosition = position;
-        if (this.pulseAnimation) {
-            cancelAnimationFrame(this.pulseAnimation);
-        }
-        this.ripples = [];
-        this.startPulseAnimation();
+        this.draw();
     }
 
     setJournalData(journalData) {
@@ -218,55 +211,12 @@ class UniverseMap {
 
     pause() {
         this.paused = true;
-        if (this.pulseAnimation) {
-            cancelAnimationFrame(this.pulseAnimation);
-            this.pulseAnimation = null;
-        }
     }
 
     resume() {
         if (!this.paused) return;
         this.paused = false;
-        if (this.showCurrentPosition && this.playerPosition) {
-            this.startPulseAnimation();
-        } else {
-            this.draw();
-        }
-    }
-
-    startPulseAnimation() {
-        if (this.paused) return;
-        let lastFrameTime = 0;
-        const FRAME_INTERVAL = 50; // ms, for 20fps
-        const animate = (now) => {
-            if (this.paused) return;
-            if (!lastFrameTime || now - lastFrameTime >= FRAME_INTERVAL) {
-                lastFrameTime = now;
-                // Add new ripple every 0.3 seconds (was 0.2)
-                if (this.pulsePhase % (Math.PI * 2) < 0.1) {
-                    this.ripples.push({
-                        size: 5, // Start with a small circle
-                        opacity: 1,
-                        startTime: Date.now()
-                    });
-                }
-                this.pulsePhase = (this.pulsePhase + 0.05) % (Math.PI * 2); // Slower phase change for less frequent ripples
-
-                // Update existing ripples
-                const currentTime = Date.now();
-                this.ripples = this.ripples.filter(ripple => {
-                    const age = currentTime - ripple.startTime;
-                    const progress = age / 750; // 750ms = 0.75 seconds for full animation (was 500ms)
-                    if (progress >= 1) return false; // Remove after 0.75 seconds
-                    ripple.size = 5 + (progress * 25); // Expand from 5 to 30
-                    ripple.opacity = 1 - progress; // Fade out linearly
-                    return true;
-                });
-                this.draw();
-            }
-            this.pulseAnimation = requestAnimationFrame(animate);
-        };
-        this.pulseAnimation = requestAnimationFrame(animate);
+        this.draw();
     }
 
     // Helper function to get color based on date
@@ -292,6 +242,70 @@ class UniverseMap {
         const color = `hsl(${hue}, 100%, 50%)`;
         this.colorCache.set(date, color);
         return color;
+    }
+
+    drawPin(position, icon) {
+        const toPixelX = (coordX) => this.getPadding().left + ((coordX - this.offsetX) / 2000) * (this.canvas.width - this.getPadding().left - this.getPadding().right) * this.zoomLevel;
+        const toPixelY = (coordY) => this.canvas.height - this.getPadding().bottom - ((coordY - this.offsetY) / 2000) * (this.canvas.height - this.getPadding().top - this.getPadding().bottom) * this.zoomLevel;
+
+        const x = toPixelX(position.coordinate_x || position.x);
+        const y = toPixelY(position.coordinate_y || position.y);
+        
+        const padding = this.getPadding();
+        const width = this.canvas.width;
+        const height = this.canvas.height;
+        const ctx = this.ctx;
+
+        // Only draw if within visible area and graph boundaries
+        if (x >= padding.left && x <= width - padding.right &&
+            y >= padding.top && y <= height - padding.bottom) {
+
+            // --- Pin Geometry ---
+            const circleRadius = 14;
+            const iconSize = 20;
+            const triangleHeight = 15;
+            const triangleWidth = 20;
+            const circleCenterY = y - triangleHeight - circleRadius;
+
+            ctx.save();
+            ctx.fillStyle = 'lightblue';
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1;
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+            ctx.shadowBlur = 6;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 3;
+
+            // --- Fill the shapes to create a solid object ---
+            ctx.beginPath();
+            // Triangle
+            ctx.moveTo(x, y); // Tip
+            ctx.lineTo(x - triangleWidth / 2, y - triangleHeight);
+            ctx.lineTo(x + triangleWidth / 2, y - triangleHeight);
+            ctx.closePath();
+            // Circle
+            ctx.moveTo(x + circleRadius, circleCenterY); // Prevents connector line
+            ctx.arc(x, circleCenterY, circleRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // --- Stroke the outside edge ---
+            ctx.beginPath();
+            ctx.moveTo(x - triangleWidth / 2, y - triangleHeight);
+            ctx.lineTo(x, y);
+            ctx.lineTo(x + triangleWidth / 2, y - triangleHeight);
+            ctx.stroke(); // Strokes the two sides of the triangle
+
+            ctx.beginPath();
+            ctx.arc(x, circleCenterY, circleRadius, 0, Math.PI * 2);
+            ctx.stroke(); // Strokes the circle
+            
+            ctx.restore();
+
+            // Draw the icon inside the head
+            if (icon.complete && icon.naturalHeight > 0) {
+                ctx.drawImage(icon, x - iconSize / 2, circleCenterY - iconSize / 2, iconSize, iconSize);
+            }
+        }
     }
 
     draw() {
@@ -482,26 +496,6 @@ class UniverseMap {
             }
         }
 
-        // Draw player position if available and showCurrentPosition is true
-        if (this.showCurrentPosition && this.playerPosition) {
-            const x = toPixelX(this.playerPosition.coordinate_x);
-            const y = toPixelY(this.playerPosition.coordinate_y);
-
-            // Only draw if within visible area and graph boundaries
-            if (x >= padding.left && x <= width - padding.right &&
-                y >= padding.top && y <= height - padding.bottom) {
-                
-                // Draw expanding ripples
-                this.ripples.forEach(ripple => {
-                    ctx.beginPath();
-                    ctx.arc(x, y, ripple.size, 0, Math.PI * 2);
-                    ctx.strokeStyle = `rgba(255, 255, 255, ${ripple.opacity})`;
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
-                });
-            }
-        }
-
         // Draw systems if showPublicSystems is true
         if (this.showPublicSystems) {
             this.systems.forEach((system, index) => {
@@ -686,6 +680,16 @@ class UniverseMap {
                 }
             }
             this.ctx.restore(); // remove clipping
+        }
+
+        // Draw player and voyager positions if available and showCurrentPosition is true
+        if (this.showCurrentPosition) {
+            if (this.playerPosition) {
+                this.drawPin(this.playerPosition, this.userIcon);
+            }
+            if (this.voyagerPosition) {
+                this.drawPin(this.voyagerPosition, this.voyagerIcon);
+            }
         }
 
         // Draw squadron space station tooltip if hovered
@@ -1205,6 +1209,18 @@ document.addEventListener('DOMContentLoaded', () => {
                             x: ss.system.coordinate_x,
                             y: ss.system.coordinate_y
                         }));
+                    }
+                    
+                    // Handle voyager data
+                    if (userData.data && userData.data.voyager &&
+                        typeof userData.data.voyager.current_x === 'number' &&
+                        typeof userData.data.voyager.current_y === 'number') {
+                        universeMap.voyagerPosition = {
+                            x: userData.data.voyager.current_x,
+                            y: userData.data.voyager.current_y
+                        };
+                    } else {
+                        universeMap.voyagerPosition = null;
                     }
                     
                     // Load stations data and filter enemy stations
