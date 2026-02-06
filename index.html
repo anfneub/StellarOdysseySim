@@ -1,13 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stellar Odyssey Player Setup</title>
+    <!-- GoatCounter Analytics -->
+    <script data-goatcounter="https://stellarodisseysim.goatcounter.com/count" async
+        src="//gc.zgo.at/count.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 2em; background: #181c24; color: #e6eaf3; }
-        .form-section { max-width: 1100px; margin-left: 0; margin-right: auto; display: flex; flex-direction: row; gap: 2em; }
-        
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2em;
+            background: #181c24;
+            color: #e6eaf3;
+        }
+
+        .form-section {
+            max-width: 1100px;
+            margin-left: 0;
+            margin-right: auto;
+            display: flex;
+            flex-direction: row;
+            gap: 2em;
+        }
+
         /* Tab styles */
         .tab-container {
             position: fixed;
@@ -20,6 +37,7 @@
             padding: 0.3em 2em;
             z-index: 1000;
         }
+
         .tab {
             padding: 0.8em 1.5em;
             background: #36405a;
@@ -31,27 +49,55 @@
             color: #e6eaf3;
             transition: background 0.2s;
         }
+
         .tab:hover {
             background: #4a5a7c;
         }
+
         .tab.active {
             background: #23283a;
             border-bottom: 1px solid #23283a;
             margin-bottom: -1px;
         }
+
         .tab-content {
             display: none;
-            margin-bottom: 3em; /* Space for tabs */
+            margin-bottom: 3em;
+            /* Space for tabs */
         }
+
         .tab-content.active {
             display: block;
         }
+
         /* End tab styles */
-        
-        .form-section > div:first-child { flex: none; width: 420px; min-width: 420px; }
-        .form-row { display: flex; gap: 1em; margin-bottom: 1em; }
-        .form-group { flex: 1; display: flex; flex-direction: column; min-width: 180px; color: #e6eaf3; font-size: 1.08em; }
-        .input-group { display: flex; align-items: center; }
+
+        .form-section>div:first-child {
+            flex: none;
+            width: 420px;
+            min-width: 420px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1em;
+            margin-bottom: 1em;
+        }
+
+        .form-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 180px;
+            color: #e6eaf3;
+            font-size: 1.08em;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+        }
+
         .input-group button {
             width: 2.2em;
             height: 1.6em;
@@ -69,9 +115,11 @@
             transition: background 0.2s;
             box-sizing: border-box;
         }
+
         .input-group button:active {
             background: #2a3142;
         }
+
         .input-group input[type=number] {
             width: 3.84em;
             height: 1.32em;
@@ -83,15 +131,18 @@
             color: #e6eaf3;
             box-sizing: border-box;
         }
+
         .clone-modifiers-section {
             flex: none;
             display: grid;
-            grid-template-rows: repeat(5, 110px); /* 5 rows for up to 10 clones */
+            grid-template-rows: repeat(5, 110px);
+            /* 5 rows for up to 10 clones */
             grid-template-columns: repeat(2, 230px);
             grid-auto-flow: row;
             gap: 0.5em;
             margin-left: 40px;
         }
+
         .clone-modifiers-block {
             background: #23283a;
             border-radius: 6px;
@@ -110,9 +161,11 @@
             font-size: 0.98em;
             color: #e6eaf3;
         }
+
         .clone-modifiers-block:nth-child(2n) {
             margin-left: 2em;
         }
+
         .clone-label {
             font-weight: 600;
             margin-bottom: 0.25em;
@@ -120,6 +173,7 @@
             font-size: 1.04em;
             color: #e6eaf3;
         }
+
         .clone-field-group {
             display: flex;
             align-items: center;
@@ -127,6 +181,7 @@
             margin-bottom: 0.15em;
             color: #e6eaf3;
         }
+
         .clone-field-group label {
             margin-bottom: 0;
             font-size: 0.97em;
@@ -134,6 +189,7 @@
             white-space: nowrap;
             color: #e6eaf3;
         }
+
         .clone-field-group input[type=number] {
             width: 3.2em;
             height: 1.1em;
@@ -143,6 +199,7 @@
             border: 1px solid #2c3242;
             padding-left: 5px;
         }
+
         .clone-field-group .minus-btn,
         .clone-field-group .plus-btn {
             width: 1.44em;
@@ -159,9 +216,15 @@
             color: #e6eaf3;
             border: 1px solid #2c3242;
         }
-        label { margin-bottom: 0.2em; }
-        button[type=button], button[type=submit] {
-            margin-top: 1em; padding: 0.5em 1em;
+
+        label {
+            margin-bottom: 0.2em;
+        }
+
+        button[type=button],
+        button[type=submit] {
+            margin-top: 1em;
+            padding: 0.5em 1em;
             background: #36405a;
             color: #f3f6fa;
             border: 1px solid #4a5a7c;
@@ -169,48 +232,72 @@
             letter-spacing: 0.01em;
             transition: background 0.2s, color 0.2s;
         }
-        button[type=button]:hover, button[type=submit]:hover {
+
+        button[type=button]:hover,
+        button[type=submit]:hover {
             background: #4a5a7c;
             color: #fff;
         }
-        .block-label { font-size: 1.22em; font-weight: 700; margin-bottom: 0.5em; color: #f3f6fa; letter-spacing: 0.01em; }
-        #playerResult { margin-top: 1.5em; font-size: 1.1em; color: #f3f6fa; }
-        @media (max-width: 900px) {
-            .form-section { max-width: 100%; }
-            .form-row { flex-direction: column; }
-            .clone-modifiers-section { margin-left: 0; }
+
+        .block-label {
+            font-size: 1.22em;
+            font-weight: 700;
+            margin-bottom: 0.5em;
+            color: #f3f6fa;
+            letter-spacing: 0.01em;
         }
-        
+
+        #playerResult {
+            margin-top: 1.5em;
+            font-size: 1.1em;
+            color: #f3f6fa;
+        }
+
+        @media (max-width: 900px) {
+            .form-section {
+                max-width: 100%;
+            }
+
+            .form-row {
+                flex-direction: column;
+            }
+
+            .clone-modifiers-section {
+                margin-left: 0;
+            }
+        }
+
         /* Mobile responsive styles for universe map */
         @media (max-width: 768px) {
-            #universe-map-tab > div {
+            #universe-map-tab>div {
                 flex-direction: column !important;
                 height: auto !important;
                 padding: 1em !important;
                 gap: 1em !important;
             }
-            
-            #universe-map-tab > div > div:first-child {
+
+            #universe-map-tab>div>div:first-child {
                 min-width: auto !important;
                 max-width: none !important;
                 margin-top: 0 !important;
                 transform: none !important;
             }
-            
-            #universe-map-tab > div > div:last-child {
+
+            #universe-map-tab>div>div:last-child {
                 width: 100% !important;
                 height: auto !important;
                 aspect-ratio: 1 !important;
                 max-width: 100vw !important;
                 max-height: 70vh !important;
             }
-            
+
             #universeMap {
                 width: 100% !important;
                 height: 100% !important;
                 aspect-ratio: 1 !important;
             }
         }
+
         .input-group .minus-btn,
         .input-group .plus-btn {
             width: 1.73em;
@@ -227,6 +314,7 @@
             color: #e6eaf3;
             border: 1px solid #2c3242;
         }
+
         #weapon_dmg,
         #shield_def {
             width: 5.0em;
@@ -234,6 +322,7 @@
             color: #e6eaf3;
             border: 1px solid #2c3242;
         }
+
         .player-block {
             background: #23283a;
             border-radius: 6px;
@@ -245,6 +334,7 @@
             max-width: 420px;
             margin-bottom: 1em;
         }
+
         .mob-block {
             background: #23283a;
             border-radius: 6px;
@@ -258,12 +348,14 @@
             margin-left: 0em;
             align-self: flex-start;
         }
+
         #mob_name {
             font-size: 1.0em;
             background: #36405a;
             color: #e6eaf3;
             border: 1px solid #2c3242;
         }
+
         #weapon_ele1,
         #weapon_ele2 {
             font-size: 1.0em;
@@ -271,6 +363,7 @@
             color: #e6eaf3;
             border: 1px solid #2c3242;
         }
+
         #shield_ele1,
         #shield_ele2 {
             font-size: 1.0em;
@@ -278,6 +371,7 @@
             color: #e6eaf3;
             border: 1px solid #2c3242;
         }
+
         .battle-block {
             background: #23283a;
             border-radius: 6px;
@@ -292,6 +386,7 @@
             min-height: 230px;
             color: #e6eaf3;
         }
+
         .optimizer-block {
             background: #23283a !important;
             border-radius: 6px;
@@ -304,6 +399,7 @@
             min-height: 230px;
             color: #e6eaf3;
         }
+
         footer {
             position: fixed;
             bottom: 3.2em;
@@ -315,11 +411,13 @@
             background: #181c24;
             padding: 0.5em 0;
         }
+
         #n_fights {
             background: #36405a;
             color: #e6eaf3;
             border: 1px solid #2c3242;
         }
+
         .player-unallocated-label {
             font-size: 0.95em;
             color: #e6eaf3;
@@ -342,7 +440,7 @@
         import { WorkerPool } from './workerpool.js';
         import { PvPBattle } from './battle.js';
         import { calculateBattleBoost } from './utils.js';
-        
+
         // Predefined test values for easy testing
         const DEFAULTS = {
             power: 0,
@@ -361,20 +459,20 @@
             mob_level: 1,
             n_fights: 1000,
             clone_modifiers: [
-            { crit: 0, critdmg: 0, dual: 0 }
+                { crit: 0, critdmg: 0, dual: 0 }
             ]
         };
-        
+
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('playerForm');
             const resultDiv = document.getElementById('playerResult');
             const submitBtn = document.getElementById('submitBtn');
             const cloneModifiersSection = document.getElementById('cloneModifiersSection');
             let cloneModifiers = [];
-            
+
             // Declare totalStatPool for use after API import
             let totalStatPool = null;
-            
+
             // Function to save all settings to localStorage
             function saveSettings() {
                 const settings = {
@@ -422,7 +520,7 @@
                 };
                 localStorage.setItem('stellarOdysseySettings', JSON.stringify(settings));
             }
-            
+
             // Load saved settings or use defaults
             const savedSettings = localStorage.getItem('stellarOdysseySettings');
             if (savedSettings) {
@@ -460,10 +558,10 @@
                         el.value = value;
                     }
                 });
-                cloneModifiers = DEFAULTS.clone_modifiers.map(mod => ({...mod}));
+                cloneModifiers = DEFAULTS.clone_modifiers.map(mod => ({ ...mod }));
                 renderCloneModifiers(parseInt(DEFAULTS.n_clones) || 1);
             }
-            
+
             // For selects and n_clones, trigger input event to update UI
             const nClonesInput = document.getElementById('n_clones');
             nClonesInput.addEventListener('input', () => {
@@ -479,7 +577,7 @@
                 renderCloneModifiers(n);
                 saveSettings();
             });
-            
+
             function renderCloneModifiers(n) {
                 // Always use cloneModifiers.length as the source of truth
                 cloneModifiersSection.innerHTML = '';
@@ -487,7 +585,7 @@
                     const block = document.createElement('div');
                     block.className = 'clone-modifiers-block';
                     block.innerHTML = `
-                        <div class="clone-label">Clone ${i+1}</div>
+                        <div class="clone-label">Clone ${i + 1}</div>
                         <div class="clone-field-group">
                             <label>Crit. Chance</label>
                             <button type="button" class="minus-btn" data-clone="${i}" data-field="crit">-</button>
@@ -556,7 +654,7 @@
                     });
                 });
             }
-            
+
             // Handle plus/minus for player fields
             document.querySelectorAll('.minus-btn:not([data-clone])').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -564,7 +662,7 @@
                     const input = document.getElementById(targetId);
                     const min = parseFloat(input.getAttribute('min')) || 0;
                     let val = parseFloat(input.value) || 0;
-                    
+
                     // Define step values for different fields
                     let step = 10; // default step
                     if (['n_clones', 'number_of_drones', 'optimizer_htk', 'optimizer_htd'].includes(targetId)) {
@@ -574,7 +672,7 @@
                     } else if (['dodge_percentage', 'rare_drop_increase', 'maneuverability', 'income_boost', 'battle_boost', 'reputation'].includes(targetId)) {
                         step = 1;
                     }
-                    
+
                     val = Math.max(min, val - step);
                     // Round to 1 decimal place for percentage fields
                     if (['dodge_percentage', 'rare_drop_increase', 'maneuverability', 'income_boost', 'battle_boost', 'reputation'].includes(targetId)) {
@@ -584,14 +682,14 @@
                     input.dispatchEvent(new Event('input'));
                 });
             });
-            
+
             document.querySelectorAll('.plus-btn:not([data-clone])').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const targetId = btn.getAttribute('data-target');
                     const input = document.getElementById(targetId);
                     const max = parseFloat(input.getAttribute('max')) || Infinity;
                     let val = parseFloat(input.value) || 0;
-                    
+
                     // Define step values for different fields
                     let step = 10; // default step
                     if (['n_clones', 'number_of_drones', 'optimizer_htk', 'optimizer_htd'].includes(targetId)) {
@@ -601,7 +699,7 @@
                     } else if (['dodge_percentage', 'rare_drop_increase', 'maneuverability', 'income_boost', 'battle_boost', 'reputation'].includes(targetId)) {
                         step = 1;
                     }
-                    
+
                     val = Math.min(max, val + step);
                     // Round to 1 decimal place for percentage fields
                     if (['dodge_percentage', 'rare_drop_increase', 'maneuverability', 'income_boost', 'battle_boost', 'reputation'].includes(targetId)) {
@@ -611,7 +709,7 @@
                     input.dispatchEvent(new Event('input'));
                 });
             });
-            
+
             // Simulate button logic
             const simulateBtn = document.getElementById('simulateBtn');
             const battleResultDiv = document.createElement('div');
@@ -632,27 +730,27 @@
                 const shield_ele1 = form.shield_ele1.value || null;
                 const shield_ele2 = form.shield_ele2.value || null;
                 const vip_status = form.vip_status.checked;
-                const battling_weapon_boost = parseInt(form.battling_weapon_boost.value)/100 || 0;
-                const battling_hull_boost = parseInt(form.battling_hull_boost.value)/100 || 0;
-                const battling_precision_boost = parseInt(form.battling_precision_boost.value)/100 || 0;
-                const battling_evasion_boost = parseInt(form.battling_evasion_boost.value)/100 || 0;
+                const battling_weapon_boost = parseInt(form.battling_weapon_boost.value) / 100 || 0;
+                const battling_hull_boost = parseInt(form.battling_hull_boost.value) / 100 || 0;
+                const battling_precision_boost = parseInt(form.battling_precision_boost.value) / 100 || 0;
+                const battling_evasion_boost = parseInt(form.battling_evasion_boost.value) / 100 || 0;
 
                 // Gather clone modifiers
                 const list_modifiers = cloneModifiers.map(mod =>
-                new CloneModifiers(
-                (parseFloat(mod.crit) || 0) / 100,
-                (parseFloat(mod.critdmg) || 0) / 100,
-                (parseFloat(mod.dual) || 0) / 100
-                )
+                    new CloneModifiers(
+                        (parseFloat(mod.crit) || 0) / 100,
+                        (parseFloat(mod.critdmg) || 0) / 100,
+                        (parseFloat(mod.dual) || 0) / 100
+                    )
                 );
-                
+
                 // Gather mob fields
                 const mob_name = form.mob_name.value;
                 const mob_level = parseInt(form.mob_level.value) || 1;
                 // MobName enum is uppercase keys
                 let mob_enum_key = Object.keys(MobName).find(key => MobName[key] === mob_name);
                 const mob = new Mob(MobName[mob_enum_key], mob_level);
-                
+
                 // Number of fights
                 let n_fights = parseInt(form.n_fights.value) || 1000;
                 if (n_fights < 1) n_fights = 1;
@@ -672,32 +770,32 @@
                     weapon_ele1, weapon_ele2, shield_ele1, shield_ele2, battle_boost, battling_weapon_boost, battling_hull_boost,
                     battling_precision_boost, battling_evasion_boost
                 });
-                
+
                 // Create and run battle
                 const battle = new Battle({ player, mob, list_modifiers, verbose: false });
                 const win_chance = battle.repeat_fights(n_fights);
-                
+
                 // Get income boost and reputation values
                 const income_boost = (parseInt(form.income_boost?.value || 0) * 0.02);
                 const reputation = (parseFloat(form.reputation?.value || 0) / 100);
-                
+
                 // Print result
                 const creditsPerHour = battle.get_revenue('hourly', win_chance, income_boost, reputation);
                 const creditsPerDay = battle.get_revenue('daily', win_chance, income_boost, reputation);
                 const expPerHour = battle.get_experience('hourly', win_chance, reputation);
                 const expPerDay = battle.get_experience('daily', win_chance, reputation);
                 battleResultDiv.innerHTML = `<b>Win chance:</b> ${(win_chance * 100).toFixed(2)}%<br>` +
-                `<b>Credits per hour:</b> ${millify(creditsPerHour)}/h<br>` +
-                `<b>Credits per day:</b> ${millify(creditsPerDay)}/day<br>` +
-                `<b>Experience per hour:</b> ${millify(expPerHour)}/h<br>` +
-                `<b>Experience per day:</b> ${millify(expPerDay)}/day`;
+                    `<b>Credits per hour:</b> ${millify(creditsPerHour)}/h<br>` +
+                    `<b>Credits per day:</b> ${millify(creditsPerDay)}/day<br>` +
+                    `<b>Experience per hour:</b> ${millify(expPerHour)}/h<br>` +
+                    `<b>Experience per day:</b> ${millify(expPerDay)}/day`;
             });
-            
+
             // Optimizer logic
             const optimizerBtn = document.getElementById('optimizerBtn');
             const longOptimizerBtn = document.getElementById('longOptimizerBtn');
             const optimizerResultDiv = document.getElementById('optimizerResult');
-            
+
             async function runOptimizer(isLongOptimize = false) {
 
                 // Loads Optimized worker amount from localStorage.
@@ -732,7 +830,7 @@
                 const progressText = document.getElementById('optimizerProgressText');
                 progressBar.style.width = '0%';
                 progressText.textContent = '0%';
-                
+
                 // Gather player fields
                 const power = parseInt(form.power.value) || 0;
                 const precision = parseInt(form.precision.value) || 0;
@@ -746,20 +844,20 @@
                 const shield_ele1 = form.shield_ele1.value || null;
                 const shield_ele2 = form.shield_ele2.value || null;
                 const vip_status = form.vip_status.checked;
-                const battling_weapon_boost = parseInt(form.battling_weapon_boost.value)/100 || 0;
-                const battling_hull_boost = parseInt(form.battling_hull_boost.value)/100 || 0;
-                const battling_precision_boost = parseInt(form.battling_precision_boost.value)/100 || 0;
-                const battling_evasion_boost = parseInt(form.battling_evasion_boost.value)/100 || 0;
-                
+                const battling_weapon_boost = parseInt(form.battling_weapon_boost.value) / 100 || 0;
+                const battling_hull_boost = parseInt(form.battling_hull_boost.value) / 100 || 0;
+                const battling_precision_boost = parseInt(form.battling_precision_boost.value) / 100 || 0;
+                const battling_evasion_boost = parseInt(form.battling_evasion_boost.value) / 100 || 0;
+
                 // Gather clone modifiers
                 const list_modifiers = cloneModifiers.map(mod =>
-                new CloneModifiers(
-                (parseFloat(mod.crit) || 0) / 100,
-                (parseFloat(mod.critdmg) || 0) / 100,
-                (parseFloat(mod.dual) || 0) / 100
-                )
+                    new CloneModifiers(
+                        (parseFloat(mod.crit) || 0) / 100,
+                        (parseFloat(mod.critdmg) || 0) / 100,
+                        (parseFloat(mod.dual) || 0) / 100
+                    )
                 );
-                
+
                 // Gather mob fields
                 const mob_name = form.mob_name.value;
                 const mob_level = parseInt(form.mob_level.value) || 1;
@@ -773,32 +871,32 @@
 
                 const player = new Player({
                     power, precision, evasion, hull, available: availableStats, weapon_dmg, shield_def, n_clones, vip_status,
-                    weapon_ele1, weapon_ele2, shield_ele1, shield_ele2, battle_boost, battling_weapon_boost, battling_hull_boost, 
+                    weapon_ele1, weapon_ele2, shield_ele1, shield_ele2, battle_boost, battling_weapon_boost, battling_hull_boost,
                     battling_precision_boost, battling_evasion_boost
                 });
-                
+
                 const optimizerFightsInput = document.getElementById('optimizer_n_fights');
                 const n_fights = parseInt(optimizerFightsInput.value);
                 const reputation = (parseFloat(form.reputation?.value || 0) / 100);
                 const optimizer = new Optimizer(player, mob, list_modifiers, n_fights, reputation);
                 let result;
-                
+
                 if (isLongOptimize) {
                     const usedThreads = getRecommendedWorkerCount();
                     const pool = new WorkerPool(usedThreads);
                     const target = document.querySelector('input[name="optimize_target"]:checked').value;
                     // Utility function to create a range [start, end] 
                     function range(start, end) {
-                        return Array.from({length: end - start + 1}, (_, i) => i + start);
+                        return Array.from({ length: end - start + 1 }, (_, i) => i + start);
                     }
                     const range_htk = range(3, 16);
                     const range_htd = range(2, 8);
                     const totalTasks = range_htk.length * range_htd.length;
                     let completedTasks = 0;
-                    
+
                     const optimizer = new Optimizer(player, mob, list_modifiers, n_fights, reputation);
                     const optimizerData = optimizer.serialize();
-                    
+
                     const tasks = [];
                     for (const htk of range_htk) {
                         for (const htd of range_htd) {
@@ -810,7 +908,7 @@
                             });
                         }
                     }
-                    
+
                     //Update progress with finished tasks count.
                     const updateProgress = () => {
                         completedTasks++;
@@ -818,23 +916,23 @@
                         progressBar.style.width = `${progress}%`;
                         progressText.textContent = `${Math.round(progress)}%`;
                     };
-                    
+
                     try {
                         const results = await Promise.all(tasks.map(task => {
                             return pool.runTask(task)
-                            .then(result => {
-                                updateProgress();
-                                return result;
-                            });
+                                .then(result => {
+                                    updateProgress();
+                                    return result;
+                                });
                         }));
-                        
+
                         let bestResult = results[0];
                         for (const resultone of results) {
                             if (resultone.res > bestResult.res) {
                                 bestResult = resultone;
                             }
                         }
-                        
+
                         //bestResult construct from optimizer.js
                         let {
                             build: best_build,
@@ -843,12 +941,12 @@
                             htd: best_htd,
                             htk: best_htk
                         } = bestResult;
-                        
+
                         result = { bestStats: best_build, winChance: best_win_chance };
-                        
+
                         document.getElementById('optimizer_htk').value = best_htk;
                         document.getElementById('optimizer_htd').value = best_htd;
-                        
+
                         const settings = JSON.parse(localStorage.getItem('stellarOdysseySettings') || '{}');
                         settings.optimizer_htk = best_htk;
                         settings.optimizer_htd = best_htd;
@@ -878,29 +976,29 @@
                     const target = document.querySelector('input[name="optimize_target"]:checked').value;
                     const htk = parseInt(document.getElementById('optimizer_htk').value);
                     const htd = parseInt(document.getElementById('optimizer_htd').value);
-                    
+
                     // Simple smooth progress over exactly 1 second
                     const startTime = Date.now();
                     const duration = 1000; // 1 second
-                    
+
                     const animateProgress = () => {
                         const elapsed = Date.now() - startTime;
                         const progress = Math.min(elapsed / duration * 100, 100);
-                        
+
                         progressBar.style.width = `${progress}%`;
                         progressText.textContent = `${Math.round(progress)}%`;
-                        
+
                         if (progress < 100) {
                             requestAnimationFrame(animateProgress);
                         }
                     };
-                    
+
                     requestAnimationFrame(animateProgress);
-                    
+
                     const [bestBuild, bestRes, bestWinChance] = optimizer.findBestBuild(htd, htk, target, false);
                     result = { bestStats: bestBuild, winChance: bestWinChance };
                 }
-                
+
                 // Update the results display
                 if (result && result.bestStats && result.winChance !== undefined) {
                     const battle_boost = calculateBattleBoost(form.battle_boost?.value || 0);
@@ -931,29 +1029,29 @@
                     });
 
                     const battle = new Battle({ player: tmp_player, mob: mob, list_modifiers: list_modifiers });
-                    
+
                     // Get income boost and reputation values
                     const income_boost = (parseInt(form.income_boost?.value || 0) * 0.02);
                     const reputation = (parseFloat(form.reputation?.value || 0) / 100);
-                    
+
                     const creditsPerHour = battle.get_revenue('hourly', result.winChance, income_boost, reputation);
                     const creditsPerDay = battle.get_revenue('daily', result.winChance, income_boost, reputation);
                     const expPerHour = battle.get_experience('hourly', result.winChance, reputation);
                     const expPerDay = battle.get_experience('daily', result.winChance, reputation);
-                    
+
                     // Update the stats
                     document.getElementById('opt_power').textContent = power;
                     document.getElementById('opt_precision').textContent = precision;
                     document.getElementById('opt_evasion').textContent = evasion;
                     document.getElementById('opt_hull').textContent = hull;
-                    
+
                     // Update the results
                     document.getElementById('opt_win_chance').textContent = `${(result.winChance * 100).toFixed(2)}%`;
                     document.getElementById('opt_credits_hour').textContent = `${millify(creditsPerHour)}/h`;
                     document.getElementById('opt_credits_day').textContent = `${millify(creditsPerDay)}/day`;
                     document.getElementById('opt_exp_hour').textContent = `${millify(expPerHour)}/h`;
                     document.getElementById('opt_exp_day').textContent = `${millify(expPerDay)}/day`;
-                    
+
                     // Add Import button next to Optimize
                     let importBtn = document.getElementById('importOptimizedBtn');
                     if (!importBtn) {
@@ -982,15 +1080,15 @@
                     document.getElementById('opt_credits_day').textContent = '-';
                     document.getElementById('opt_exp_hour').textContent = '-';
                     document.getElementById('opt_exp_day').textContent = '-';
-                    
+
                     let importBtn = document.getElementById('importOptimizedBtn');
                     if (importBtn) importBtn.style.display = 'none';
                 }
             }
-            
+
             optimizerBtn.addEventListener('click', () => runOptimizer(false));
             longOptimizerBtn.addEventListener('click', () => runOptimizer(true));
-            
+
             // Add event listeners to save settings when values change
             form.querySelectorAll('input, select').forEach(element => {
                 element.addEventListener('change', saveSettings);
@@ -998,12 +1096,12 @@
                     element.addEventListener('input', saveSettings);
                 }
             });
-            
+
             // For number inputs, also save on input event for immediate feedback
             form.querySelectorAll('input[type="number"]').forEach(element => {
                 element.addEventListener('input', saveSettings);
             });
-            
+
             // Add event listeners for all minus/plus buttons
             document.querySelectorAll('.minus-btn, .plus-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -1017,7 +1115,7 @@
                     }
                 });
             });
-            
+
             // Modify the clone modifiers event listeners to save settings
             function addCloneModifierListeners() {
                 cloneModifiersSection.querySelectorAll('.minus-btn, .plus-btn, .clone-input').forEach(element => {
@@ -1027,19 +1125,19 @@
                     }
                 });
             }
-            
+
             // Update the renderCloneModifiers function to add listeners
             const originalRenderCloneModifiers = renderCloneModifiers;
-            renderCloneModifiers = function(n) {
+            renderCloneModifiers = function (n) {
                 originalRenderCloneModifiers(n);
                 addCloneModifierListeners();
             };
-            
-            
+
+
             // Add API import functionality
             const importBtn = document.getElementById('importBtn');
             const apiKeyInput = document.getElementById('api_key');
-            
+
             async function fetchUserData(apiKey) {
                 try {
                     const response = await axios({
@@ -1054,7 +1152,7 @@
                     return response.data;
                 } catch (error) {
                     let errorMessage = 'Failed to fetch user data. ';
-                    
+
                     if (error.response) {
                         if (error.response.status === 401) {
                             errorMessage += 'Invalid API key.';
@@ -1074,11 +1172,11 @@
                     } else {
                         errorMessage += error.message;
                     }
-                    
+
                     throw new Error(errorMessage);
                 }
             }
-            
+
             async function fetchStationsData(apiKey) {
                 try {
                     const response = await axios({
@@ -1093,7 +1191,7 @@
                     return response.data;
                 } catch (error) {
                     let errorMessage = 'Failed to fetch stations data. ';
-                    
+
                     if (error.response) {
                         if (error.response.status === 401) {
                             errorMessage += 'Invalid API key.';
@@ -1113,73 +1211,73 @@
                     } else {
                         errorMessage += error.message;
                     }
-                    
+
                     throw new Error(errorMessage);
                 }
             }
-            
+
             function checkUserLocationAtStation(userData, stationsData) {
                 if (!userData.data.currentSystem || !stationsData.stations) {
                     return { station: null, isEnemyStation: false };
                 }
-                
+
                 const currentSystem = userData.data.currentSystem;
                 const userX = currentSystem.coordinate_x;
                 const userY = currentSystem.coordinate_y;
                 const userZ = currentSystem.coordinate_z;
-                
+
                 // Find station at the same coordinates
-                const stationAtLocation = stationsData.stations.find(station => 
-                    station.x === userX && 
-                    station.y === userY && 
+                const stationAtLocation = stationsData.stations.find(station =>
+                    station.x === userX &&
+                    station.y === userY &&
                     station.z === userZ
                 );
-                
+
                 if (!stationAtLocation) {
                     return { station: null, isEnemyStation: false };
                 }
-                
+
                 // Check if it's an enemy station
                 const userSquadron = userData.data.squadron?.name;
                 const isEnemyStation = userSquadron && stationAtLocation.squadron !== userSquadron;
-                
-                return { 
-                    station: stationAtLocation, 
-                    isEnemyStation: isEnemyStation 
-                };                
+
+                return {
+                    station: stationAtLocation,
+                    isEnemyStation: isEnemyStation
+                };
             }
-            
+
             function createStationInfoElement() {
                 const stationInfo = document.createElement('div');
                 stationInfo.id = 'stationInfo';
                 stationInfo.style.display = 'none';
-                
+
                 // Find the API block and append the station info after it
                 const apiBlock = document.querySelector('.api-block');
                 if (apiBlock && apiBlock.parentNode) {
                     apiBlock.parentNode.insertBefore(stationInfo, apiBlock.nextSibling);
                 }
-                
+
                 return stationInfo;
             }
-            
+
             function createEnemySquadronWarningElement() {
                 const warningInfo = document.createElement('div');
                 warningInfo.id = 'enemySquadronWarning';
                 warningInfo.style.display = 'none';
-                
+
                 // Find the API block and append the warning after it
                 const apiBlock = document.querySelector('.api-block');
                 if (apiBlock && apiBlock.parentNode) {
                     apiBlock.parentNode.insertBefore(warningInfo, apiBlock.nextSibling);
                 }
-                
+
                 return warningInfo;
             }
-            
+
             function updateFormWithUserData(userData, stationsData = null) {
                 const data = userData.data;
-                
+
                 // Update form fields with API data
                 if (data.stats) {
                     form.power.value = data.stats.power || 0;
@@ -1189,18 +1287,18 @@
                     if (!document.getElementById('ignore_unallocated')?.checked) {
                         document.getElementById('available').value = data.stats.available || 0;
                     }
-                    
+
                     // Set the total stat pool
                     totalStatPool =
-                    (parseInt(form.power.value) || 0) +
-                    (parseInt(form.precision.value) || 0) +
-                    (parseInt(form.evasion.value) || 0) +
-                    (parseInt(form.hull.value) || 0) +
-                    (parseInt(document.getElementById('available').value) || 0);
-                    
+                        (parseInt(form.power.value) || 0) +
+                        (parseInt(form.precision.value) || 0) +
+                        (parseInt(form.evasion.value) || 0) +
+                        (parseInt(form.hull.value) || 0) +
+                        (parseInt(document.getElementById('available').value) || 0);
+
                     updateUnallocatedStatsDisplay()
                 }
-                
+
                 // Update ship data
                 if (data.ship) {
                     if (data.ship.weapon) {
@@ -1217,7 +1315,7 @@
                             form.weapon_ele2.value = '';
                         }
                     }
-                    
+
                     if (data.ship.shield) {
                         form.shield_def.value = data.ship.shield.value || 0;
                         if (data.ship.shield.bonuses && data.ship.shield.bonuses.length > 0) {
@@ -1233,10 +1331,10 @@
                         }
                     }
                 }
-                
+
                 // Update VIP status
                 form.vip_status.checked = data.premium || false;
-                
+
                 // Update number of clones and clone modifiers
                 if (data.clones && data.clones.length > 0) {
                     form.n_clones.value = data.clones.length;
@@ -1246,7 +1344,7 @@
                         dual: clone.dual_shot || 0
                     }));
                 }
-                
+
                 // Update current mob and level
                 if (data.actions) {
                     if (data.actions.currentNpc) {
@@ -1256,7 +1354,7 @@
                         form.mob_level.value = data.actions.currentNpcLevel;
                     }
                 }
-                
+
                 // Handle spacestation battleboost
                 if (data.squadron && data.squadron.buildings) {
                     // Find Barracks building for battle boost
@@ -1265,7 +1363,7 @@
                 } else {
                     form.battle_boost.value = 0;
                 }
-                
+
                 // Handle spacestation incomeboost
                 if (data.squadron && data.squadron.buildings) {
                     // Find Amplifier building for income boost
@@ -1274,14 +1372,14 @@
                 } else {
                     form.income_boost.value = 0;
                 }
-                
+
                 // Handle reputation
                 if (data.reputation !== null && data.reputation !== undefined) {
                     form.reputation.value = data.reputation;
                 } else {
                     form.reputation.value = 0;
                 }
-                
+
                 // Handle skills (battling boosts)
                 if (data.skills) {
                     form.battling_weapon_boost.value = data.skills.battling_weapon_boost || 0;
@@ -1294,19 +1392,19 @@
                     form.battling_precision_boost.value = 0;
                     form.battling_evasion_boost.value = 0;
                 }
-                
+
                 // Render clone modifiers with the new data
                 renderCloneModifiers(parseInt(form.n_clones.value) || 1);
-                
+
                 const nClonesInput = document.getElementById('n_clones');
                 nClonesInput.dispatchEvent(new Event('input'));
-                
+
                 // Check if user is at a station and display information
                 if (stationsData) {
                     const stationResult = checkUserLocationAtStation(userData, stationsData);
                     const stationAtLocation = stationResult.station;
                     const isEnemyStation = stationResult.isEnemyStation;
-                    
+
                     if (stationAtLocation) {
 
                         // Display enemy squadron warning if applicable
@@ -1336,9 +1434,9 @@
                         }
                     }
                 }
-                
+
                 saveSettings();
-                
+
                 // Handle squadron space stations
                 if (data.squadronSpaceStations && Array.isArray(data.squadronSpaceStations)) {
                     const map = window.UniverseMap?.getInstance?.();
@@ -1352,48 +1450,48 @@
                     }
                 }
             }
-            
+
             importBtn.addEventListener('click', async () => {
                 const apiKey = apiKeyInput.value.trim();
                 if (!apiKey) {
                     alert('Please enter your API key');
                     return;
                 }
-                
+
                 try {
                     importBtn.disabled = true;
                     importBtn.textContent = 'Importing...';
-                    
+
                     // Fetch both user data and stations data in parallel
                     const [userData, stationsData] = await Promise.all([
                         fetchUserData(apiKey),
                         fetchStationsData(apiKey)
                     ]);
-                    
+
                     updateFormWithUserData(userData, stationsData);
-                    
+
                     importBtn.disabled = false;
                     importBtn.textContent = 'Import';
                 } catch (error) {
                     alert(error.message);
-                    
+
                     importBtn.disabled = false;
                     importBtn.textContent = 'Import';
                 }
             });
-            
+
             // --- Unallocated stats logic ---
             function updateUnallocatedStatsDisplay() {
                 const power = parseInt(form.power.value) || 0;
-                const precision =  parseInt(form.precision.value) || 0;
-                const evasion =  parseInt(form.evasion.value) || 0;
+                const precision = parseInt(form.precision.value) || 0;
+                const evasion = parseInt(form.evasion.value) || 0;
                 const hull = parseInt(form.hull.value) || 0;
                 if (totalStatPool === null) {
                     totalStatPool =
-                    (parseInt(form.power.value) || 0) +
-                    (parseInt(form.precision.value) || 0) +
-                    (parseInt(form.evasion.value) || 0) +
-                    (parseInt(form.hull.value) || 0);
+                        (parseInt(form.power.value) || 0) +
+                        (parseInt(form.precision.value) || 0) +
+                        (parseInt(form.evasion.value) || 0) +
+                        (parseInt(form.hull.value) || 0);
                     document.getElementById('unallocatedStatsDisplay').textContent = `Unallocated stats: 0`;
                 }
                 else {
@@ -1401,18 +1499,18 @@
                     document.getElementById('unallocatedStatsDisplay').textContent = `Unallocated stats: ${unallocated}`;
                 }
             }
-            
-            ['power','precision','evasion','hull'].forEach(stat => {
+
+            ['power', 'precision', 'evasion', 'hull'].forEach(stat => {
                 const input = document.getElementById(stat);
                 input.addEventListener('input', () => {
                     updateUnallocatedStatsDisplay();
                 });
             });
-            
+
             // On page load, initialize lastStats and display
             updateUnallocatedStatsDisplay();
             // --- End unallocated stats logic ---
-            
+
             // PvP Tab logic
             const pvpFightBtn = document.getElementById('pvpFightBtn');
             const pvpBattleOutput = document.getElementById('pvpBattleOutput');
@@ -1510,22 +1608,25 @@
                         }
                         pvpBattleOutput.value =
                             `Results after ${nFights} fights:\n` +
-                            `Attackers won: ${attackersWins} (${((attackersWins/nFights)*100).toFixed(2)}%)\n` +
-                            `Defenders won: ${defendersWins} (${((defendersWins/nFights)*100).toFixed(2)}%)\n`;
+                            `Attackers won: ${attackersWins} (${((attackersWins / nFights) * 100).toFixed(2)}%)\n` +
+                            `Defenders won: ${defendersWins} (${((defendersWins / nFights) * 100).toFixed(2)}%)\n`;
                     }
                 });
             }
         });
-        
+
     </script>
 </head>
+
 <body>
     <div style="display: flex; align-items: center; gap: 1em; margin-bottom: 2.2em;">
-        <div style="font-size: 1.7em; font-weight: 600; letter-spacing: 0.01em;">Stellar Odyssey Simulator and Optimizer</div>
+        <div style="font-size: 1.7em; font-weight: 600; letter-spacing: 0.01em;">Stellar Odyssey Simulator and Optimizer
+        </div>
     </div>
     <!-- Tab content sections -->
     <div id="battling-tab" class="tab-content active">
-        <form id="playerForm" class="form-section" autocomplete="off" style="display: flex; flex-direction: row; gap: 2em;">
+        <form id="playerForm" class="form-section" autocomplete="off"
+            style="display: flex; flex-direction: row; gap: 2em;">
             <div style="flex: 3;">
                 <div class="player-block" style="width: 420px; min-width: 420px; max-width: 420px;">
                     <div class="block-label" style="display: flex; align-items: center; justify-content: flex-start;">
@@ -1689,7 +1790,8 @@
                             <label for="battle_boost">Battle Boost Level:</label>
                             <div class="input-group">
                                 <button type="button" class="minus-btn" data-target="battle_boost">-</button>
-                                <input type="number" id="battle_boost" name="battle_boost" value="0" min="0" style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
+                                <input type="number" id="battle_boost" name="battle_boost" value="0" min="0"
+                                    style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
                                 <button type="button" class="plus-btn" data-target="battle_boost">+</button>
                             </div>
                         </div>
@@ -1697,7 +1799,8 @@
                             <label for="income_boost">Income Boost Level:</label>
                             <div class="input-group">
                                 <button type="button" class="minus-btn" data-target="income_boost">-</button>
-                                <input type="number" id="income_boost" name="income_boost" value="0" min="0" style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
+                                <input type="number" id="income_boost" name="income_boost" value="0" min="0"
+                                    style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
                                 <button type="button" class="plus-btn" data-target="income_boost">+</button>
                             </div>
                         </div>
@@ -1707,7 +1810,8 @@
                             <label for="reputation">Reputation:</label>
                             <div class="input-group">
                                 <button type="button" class="minus-btn" data-target="reputation">-</button>
-                                <input type="number" id="reputation" name="reputation" value="0" min="0" style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">%
+                                <input type="number" id="reputation" name="reputation" value="0" min="0"
+                                    style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">%
                                 <button type="button" class="plus-btn" data-target="reputation">+</button>
                             </div>
                         </div>
@@ -1721,7 +1825,9 @@
                             <label for="battling_weapon_boost">Weapon Boost:</label>
                             <div class="input-group">
                                 <button type="button" class="minus-btn" data-target="battling_weapon_boost">-</button>
-                                <input type="number" id="battling_weapon_boost" name="battling_weapon_boost" value="0" min="0" style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">%
+                                <input type="number" id="battling_weapon_boost" name="battling_weapon_boost" value="0"
+                                    min="0"
+                                    style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">%
                                 <button type="button" class="plus-btn" data-target="battling_weapon_boost">+</button>
                             </div>
                         </div>
@@ -1729,7 +1835,9 @@
                             <label for="battling_hull_boost">Hull Boost:</label>
                             <div class="input-group">
                                 <button type="button" class="minus-btn" data-target="battling_hull_boost">-</button>
-                                <input type="number" id="battling_hull_boost" name="battling_hull_boost" value="0" min="0" style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">%
+                                <input type="number" id="battling_hull_boost" name="battling_hull_boost" value="0"
+                                    min="0"
+                                    style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">%
                                 <button type="button" class="plus-btn" data-target="battling_hull_boost">+</button>
                             </div>
                         </div>
@@ -1738,8 +1846,11 @@
                         <div class="form-group">
                             <label for="battling_precision_boost">Precision Boost:</label>
                             <div class="input-group">
-                                <button type="button" class="minus-btn" data-target="battling_precision_boost">-</button>
-                                <input type="number" id="battling_precision_boost" name="battling_precision_boost" value="0" min="0" style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">%
+                                <button type="button" class="minus-btn"
+                                    data-target="battling_precision_boost">-</button>
+                                <input type="number" id="battling_precision_boost" name="battling_precision_boost"
+                                    value="0" min="0"
+                                    style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">%
                                 <button type="button" class="plus-btn" data-target="battling_precision_boost">+</button>
                             </div>
                         </div>
@@ -1747,7 +1858,9 @@
                             <label for="battling_evasion_boost">Evasion Boost:</label>
                             <div class="input-group">
                                 <button type="button" class="minus-btn" data-target="battling_evasion_boost">-</button>
-                                <input type="number" id="battling_evasion_boost" name="battling_evasion_boost" value="0" min="0" style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">%
+                                <input type="number" id="battling_evasion_boost" name="battling_evasion_boost" value="0"
+                                    min="0"
+                                    style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">%
                                 <button type="button" class="plus-btn" data-target="battling_evasion_boost">+</button>
                             </div>
                         </div>
@@ -1759,78 +1872,97 @@
             <div style="display: flex; flex-direction: row; align-items: flex-start;">
                 <div style="position: relative; width: fit-content;">
                     <div style="position: absolute; left: 180px; top: -2.1em; z-index: 2;">
-                        <label style="font-size: 1.08em; display: flex; align-items: center; color: #e6eaf3; background: #23283a; padding: 0.1em 0.7em 0.1em 0.5em; border-radius: 5px; box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);">
-                            <input type="checkbox" id="modifyAllClones" style="margin-right: 0.5em;"> Modify all clones together
+                        <label
+                            style="font-size: 1.08em; display: flex; align-items: center; color: #e6eaf3; background: #23283a; padding: 0.1em 0.7em 0.1em 0.5em; border-radius: 5px; box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);">
+                            <input type="checkbox" id="modifyAllClones" style="margin-right: 0.5em;"> Modify all clones
+                            together
                         </label>
                     </div>
                     <div id="cloneModifiersSection" class="clone-modifiers-section"></div>
                 </div>
                 <div style="display: flex; flex-direction: column; align-items: flex-start; margin-left: 7.5em;">
-                    <div class="api-block" style="margin-top: 0; margin-left: 5px; min-height: 110px; max-height: 110px; width: 450px; min-width: 450px; max-width: 450px; background: #23283a; border-radius: 6px; border: 1px solid #2c3242; padding: 0.7em 1.2em 0.5em 1.2em; box-sizing: border-box;">
+                    <div class="api-block"
+                        style="margin-top: 0; margin-left: 5px; min-height: 110px; max-height: 110px; width: 450px; min-width: 450px; max-width: 450px; background: #23283a; border-radius: 6px; border: 1px solid #2c3242; padding: 0.7em 1.2em 0.5em 1.2em; box-sizing: border-box;">
                         <div class="block-label">Import data
-                            <span style="color: #4fa3ff; margin-left: 5px; cursor: help;" title="Import your player, mob and clone stats using your API key. This will automatically fill in all your current stats and check if you're currently in a system with an enemy station. Your API key is located in Settings">ⓘ</span>
+                            <span style="color: #4fa3ff; margin-left: 5px; cursor: help;"
+                                title="Import your player, mob and clone stats using your API key. This will automatically fill in all your current stats and check if you're currently in a system with an enemy station. Your API key is located in Settings">ⓘ</span>
                         </div>
                         <div class="form-row">
                             <div class="form-group" style="flex: 1;">
                                 <label for="api_key">API Key:</label>
-                                <input type="text" id="api_key" name="api_key" style="width: 150%; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; padding: 0.2em;">
+                                <input type="text" id="api_key" name="api_key"
+                                    style="width: 150%; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; padding: 0.2em;">
                             </div>
-                            <div class="form-group" style="align-items: flex-start; justify-content: flex-start; margin-left: 110px;">
+                            <div class="form-group"
+                                style="align-items: flex-start; justify-content: flex-start; margin-left: 110px;">
                                 <button id="importBtn" type="button">Import</button>
                             </div>
                         </div>
                     </div>
-                    <div class="battle-block" style="margin-top: 1.0em; margin-left: 5px; min-height: 210px; max-height: 210px;width: 350px; min-width: 350px; max-width: 350px">
+                    <div class="battle-block"
+                        style="margin-top: 1.0em; margin-left: 5px; min-height: 210px; max-height: 210px;width: 350px; min-width: 350px; max-width: 350px">
                         <div class="block-label">Battle Simulation
-                            <span style="color: #4fa3ff; margin-left: 5px; cursor: help;" title="Run a battle simulation with the current configuration. The simulation will execute the specified number of battles (up to 1,000,000) to calculate win probability and resource gains.">ⓘ</span>
+                            <span style="color: #4fa3ff; margin-left: 5px; cursor: help;"
+                                title="Run a battle simulation with the current configuration. The simulation will execute the specified number of battles (up to 1,000,000) to calculate win probability and resource gains.">ⓘ</span>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="n_fights">Number of fights:</label>
-                                <input type="number" id="n_fights" name="n_fights" value="10000" min="1" max="1000000" style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
+                                <input type="number" id="n_fights" name="n_fights" value="10000" min="1" max="1000000"
+                                    style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
                             </div>
-                            <div class="form-group" style="align-items: flex-start; justify-content: flex-start; margin-left: -30px;">
+                            <div class="form-group"
+                                style="align-items: flex-start; justify-content: flex-start; margin-left: -30px;">
                                 <button id="simulateBtn" type="button">Simulate</button>
                             </div>
                         </div>
                     </div>
-                    <div class="optimizer-block" style="margin-top: 1.5em; margin-left: 5px; width: 600px; min-width: 600px; max-width: 600px; min-height: 210px;">
+                    <div class="optimizer-block"
+                        style="margin-top: 1.5em; margin-left: 5px; width: 600px; min-width: 600px; max-width: 600px; min-height: 210px;">
                         <div class="block-label">Optimizer
-                            <span style="color: #4fa3ff; margin-left: 5px; cursor: help;" title="Find the optimal stat distribution for your current configuration. The optimizer will test various stat combinations using the specified number of simulations (up to 1,000,000). Higher values provide more accurate results but significantly increase computation time and may temporarily freeze the interface. Consider starting with a lower number and increasing it if needed.">ⓘ</span>
+                            <span style="color: #4fa3ff; margin-left: 5px; cursor: help;"
+                                title="Find the optimal stat distribution for your current configuration. The optimizer will test various stat combinations using the specified number of simulations (up to 1,000,000). Higher values provide more accurate results but significantly increase computation time and may temporarily freeze the interface. Consider starting with a lower number and increasing it if needed.">ⓘ</span>
                         </div>
                         <div style="display: flex; align-items: center; margin-bottom: 1em;">
                             <span style="margin-right: 10px;">Optimize against:</span>
                             <label style="margin-right: 15px; display: flex; align-items: center;">
-                                <input type="radio" name="optimize_target" value="credits" checked style="margin-right: 5px;"> Credits
+                                <input type="radio" name="optimize_target" value="credits" checked
+                                    style="margin-right: 5px;"> Credits
                             </label>
                             <label style="display: flex; align-items: center;">
-                                <input type="radio" name="optimize_target" value="exp" style="margin-right: 5px;"> Experience
+                                <input type="radio" name="optimize_target" value="exp" style="margin-right: 5px;">
+                                Experience
                             </label>
                         </div>
                         <div class="form-row" style="margin-bottom: 0.5em;">
                             <label style="display: flex; align-items: center;">
-                                <input type="checkbox" id="ignore_unallocated" name="ignore_unallocated" style="margin-right: 0.5em;">
+                                <input type="checkbox" id="ignore_unallocated" name="ignore_unallocated"
+                                    style="margin-right: 0.5em;">
                                 Ignore unallocated stats
                             </label>
                         </div>
                         <div class="form-row" style="margin-bottom: 1em;">
                             <div class="form-group">
                                 <label for="optimizer_htk">HTK:
-                                    <span style="color: #4fa3ff; margin-left: 5px; cursor: help;" title="Hits to kill: The number of hits needed to defeat the mob">ⓘ</span>
+                                    <span style="color: #4fa3ff; margin-left: 5px; cursor: help;"
+                                        title="Hits to kill: The number of hits needed to defeat the mob">ⓘ</span>
                                 </label>
                                 <div class="input-group">
                                     <button type="button" class="minus-btn" data-target="optimizer_htk">-</button>
-                                    <input type="number" id="optimizer_htk" name="optimizer_htk" value="8" min="1" style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
+                                    <input type="number" id="optimizer_htk" name="optimizer_htk" value="8" min="1"
+                                        style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
                                     <button type="button" class="plus-btn" data-target="optimizer_htk">+</button>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label for="optimizer_htd">HTD:
-                                    <span style="color: #4fa3ff; margin-left: 5px; cursor: help;" title="Hits to die: The number of hits the mob needs to defeat your clones">ⓘ</span>
+                                    <span style="color: #4fa3ff; margin-left: 5px; cursor: help;"
+                                        title="Hits to die: The number of hits the mob needs to defeat your clones">ⓘ</span>
                                 </label>
                                 <div class="input-group">
                                     <button type="button" class="minus-btn" data-target="optimizer_htd">-</button>
-                                    <input type="number" id="optimizer_htd" name="optimizer_htd" value="4" min="1" style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
+                                    <input type="number" id="optimizer_htd" name="optimizer_htd" value="4" min="1"
+                                        style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
                                     <button type="button" class="plus-btn" data-target="optimizer_htd">+</button>
                                 </div>
                             </div>
@@ -1838,22 +1970,35 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="optimizer_n_fights">Number of fights:</label>
-                                <input type="number" id="optimizer_n_fights" name="optimizer_n_fights" value="5000" min="1" max="1000000" style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
+                                <input type="number" id="optimizer_n_fights" name="optimizer_n_fights" value="5000"
+                                    min="1" max="1000000"
+                                    style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
                             </div>
-                            <div class="form-group" style="display: flex; flex-direction: row; align-items: center; margin-left: -250px;">
-                                <button id="optimizerBtn" type="button" style="margin-right: 10px;">Simple Optimize</button>
-                                <button id="longOptimizerBtn" type="button" style="margin-right: 10px;" title="Optimize by searching through multiple values of HTK and HTD. It is not advised to use more than 5000 fights">Long Optimize</button>
+                            <div class="form-group"
+                                style="display: flex; flex-direction: row; align-items: center; margin-left: -250px;">
+                                <button id="optimizerBtn" type="button" style="margin-right: 10px;">Simple
+                                    Optimize</button>
+                                <button id="longOptimizerBtn" type="button" style="margin-right: 10px;"
+                                    title="Optimize by searching through multiple values of HTK and HTD. It is not advised to use more than 5000 fights">Long
+                                    Optimize</button>
                                 <button id="importOptimizedBtn" type="button" style="display: none;">Import</button>
                             </div>
                         </div>
                         <div id="optimizerProgress" style="height: 50px; margin: 1em 0;">
-                            <div style="width: 100%; background: #36405a; border-radius: 4px; height: 20px; overflow: hidden;">
-                                <div id="optimizerProgressBar" style="width: 0%; height: 100%; background: #4fa3ff; transition: width 0.3s ease;"></div>
+                            <div
+                                style="width: 100%; background: #36405a; border-radius: 4px; height: 20px; overflow: hidden;">
+                                <div id="optimizerProgressBar"
+                                    style="width: 0%; height: 100%; background: #4fa3ff; transition: width 0.3s ease;">
+                                </div>
                             </div>
-                            <div id="optimizerProgressText" style="text-align: center; margin-top: 0.5em; font-size: 0.9em; color: #b0b6c6;">0%</div>
+                            <div id="optimizerProgressText"
+                                style="text-align: center; margin-top: 0.5em; font-size: 0.9em; color: #b0b6c6;">0%
+                            </div>
                         </div>
-                        <div id="optimizerResult" style="display: flex; flex-direction: row; gap: 2em; margin-top: 1em;">
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.2em 1.2em; width: 140px; font-size: 1em;">
+                        <div id="optimizerResult"
+                            style="display: flex; flex-direction: row; gap: 2em; margin-top: 1em;">
+                            <div
+                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.2em 1.2em; width: 140px; font-size: 1em;">
                                 <div><b>Power</b><br><span id="opt_power">-</span></div>
                                 <div><b>Precision</b><br><span id="opt_precision">-</span></div>
                                 <div><b>Evasion</b><br><span id="opt_evasion">-</span></div>
@@ -1872,13 +2017,17 @@
             </div>
         </form>
     </div>
-    
+
     <div id="gathering-tab" class="tab-content">
         <div class="form-section" style="display: flex; flex-direction: row; gap: 2em;">
-            <div class="optimizer-block" style="margin-top: 1.0em; margin-left: 5px; width: 500px; min-width: 500px; max-width: 500px; min-height: 210px; position: relative;">
-                <div style="position: absolute; top: 0.5em; right: 1em; text-align: left; font-size: 0.75em; color: #b0b6c6; line-height: 1.2;">
+            <div class="optimizer-block"
+                style="margin-top: 1.0em; margin-left: 5px; width: 500px; min-width: 500px; max-width: 500px; min-height: 210px; position: relative;">
+                <div
+                    style="position: absolute; top: 0.5em; right: 1em; text-align: left; font-size: 0.75em; color: #b0b6c6; line-height: 1.2;">
                     For a more precise resources<br>
-                    calculator, see this <a href="https://docs.google.com/spreadsheets/d/1DCpkdBsHL_dqa_Fv13k3M1iKVuBCa4vXbfTjToQ64G8/edit?gid=1892479921#gid=1892479921" target="_blank" style="color: #4fa3ff; text-decoration: none;">Google Sheet</a>
+                    calculator, see this <a
+                        href="https://docs.google.com/spreadsheets/d/1DCpkdBsHL_dqa_Fv13k3M1iKVuBCa4vXbfTjToQ64G8/edit?gid=1892479921#gid=1892479921"
+                        target="_blank" style="color: #4fa3ff; text-decoration: none;">Google Sheet</a>
                 </div>
                 <div class="block-label">Resources Calculator
                     <span style="color: #4fa3ff; margin-left: 5px; cursor: help;" title="Calculate resource gathering rates and time to reach specific goals based on your current setup.
@@ -1891,7 +2040,8 @@
                         <label for="resources_per_action">Resources per action:</label>
                         <div class="input-group">
                             <button type="button" class="minus-btn" data-target="resources_per_action">-</button>
-                            <input type="number" id="resources_per_action" name="resources_per_action" value="0" min="0" style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
+                            <input type="number" id="resources_per_action" name="resources_per_action" value="0" min="0"
+                                style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
                             <button type="button" class="plus-btn" data-target="resources_per_action">+</button>
                         </div>
                     </div>
@@ -1899,7 +2049,9 @@
                         <label for="rare_resources_per_action">Rare res per action:</label>
                         <div class="input-group">
                             <button type="button" class="minus-btn" data-target="rare_resources_per_action">-</button>
-                            <input type="number" id="rare_resources_per_action" name="rare_resources_per_action" value="0" min="0" style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
+                            <input type="number" id="rare_resources_per_action" name="rare_resources_per_action"
+                                value="0" min="0"
+                                style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
                             <button type="button" class="plus-btn" data-target="rare_resources_per_action">+</button>
                         </div>
                     </div>
@@ -1909,7 +2061,8 @@
                         <label for="number_of_drones">Number of drones:</label>
                         <div class="input-group">
                             <button type="button" class="minus-btn" data-target="number_of_drones">-</button>
-                            <input type="number" id="number_of_drones" name="number_of_drones" value="1" min="1" style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
+                            <input type="number" id="number_of_drones" name="number_of_drones" value="1" min="1"
+                                style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
                             <button type="button" class="plus-btn" data-target="number_of_drones">+</button>
                         </div>
                     </div>
@@ -1917,7 +2070,9 @@
                         <label for="dodge_percentage">Additional dodge:</label>
                         <div class="input-group">
                             <button type="button" class="minus-btn" data-target="dodge_percentage">-</button>
-                            <input type="number" id="dodge_percentage" name="dodge_percentage" value="0" min="0" max="100" step="0.1" style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
+                            <input type="number" id="dodge_percentage" name="dodge_percentage" value="0" min="0"
+                                max="100" step="0.1"
+                                style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
                             <span style="margin: 0 0.2em;">%</span>
                             <button type="button" class="plus-btn" data-target="dodge_percentage">+</button>
                         </div>
@@ -1928,7 +2083,9 @@
                         <label for="rare_drop_increase">Additional rare res drop:</label>
                         <div class="input-group">
                             <button type="button" class="minus-btn" data-target="rare_drop_increase">-</button>
-                            <input type="number" id="rare_drop_increase" name="rare_drop_increase" value="0" min="0" max="100" step="0.1" style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
+                            <input type="number" id="rare_drop_increase" name="rare_drop_increase" value="0" min="0"
+                                max="100" step="0.1"
+                                style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
                             <span style="margin: 0 0.2em;">%</span>
                             <button type="button" class="plus-btn" data-target="rare_drop_increase">+</button>
                         </div>
@@ -1937,14 +2094,17 @@
                         <label for="maneuverability">Avg. maneuverability:</label>
                         <div class="input-group">
                             <button type="button" class="minus-btn" data-target="maneuverability">-</button>
-                            <input type="number" id="maneuverability" name="maneuverability" value="0" min="0" max="100" step="0.1" style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
+                            <input type="number" id="maneuverability" name="maneuverability" value="0" min="0" max="100"
+                                step="0.1"
+                                style="width: 5.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
                             <span style="margin: 0 0.2em;">%</span>
                             <button type="button" class="plus-btn" data-target="maneuverability">+</button>
                         </div>
                     </div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group" style="align-items: flex-start; justify-content: flex-start; margin-left: 0;">
+                    <div class="form-group"
+                        style="align-items: flex-start; justify-content: flex-start; margin-left: 0;">
                         <button id="calculateResourcesBtn" type="button">Calculate</button>
                     </div>
                 </div>
@@ -1953,54 +2113,71 @@
                         <div><b>Resources per hour:</b> <span id="resources_per_hour">-</span></div>
                         <div><b>Rare resources per hour:</b> <span id="rare_resources_per_hour">-</span></div>
                         <div><b>Hours necessary to gather 32M resources:</b> <span id="hours_to_32m">-</span></div>
-                        <div><b>Hours necessary to gather 800k rare resources:</b> <span id="days_to_800k">-</span></div>
+                        <div><b>Hours necessary to gather 800k rare resources:</b> <span id="days_to_800k">-</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <div id="universe-map-tab" class="tab-content">
         <div style="display: flex; flex-direction: row; padding: 2em; gap: 2em; height: 720px; flex-wrap: wrap;">
-            <div style="display: flex; flex-direction: column; gap: 1em; min-width: 400px; max-width: 400px; margin-top: 37vh; transform: translateY(-50%);">
-                <div style="background: #23283a; border-radius: 6px; border: 1px solid #2c3242; padding: 1.2em; box-sizing: border-box;">
-                    <div style="font-size: 1.22em; font-weight: 700; margin-bottom: 1em; color: #f3f6fa; letter-spacing: 0.01em;">Discovered Universe</div>
+            <div
+                style="display: flex; flex-direction: column; gap: 1em; min-width: 400px; max-width: 400px; margin-top: 37vh; transform: translateY(-50%);">
+                <div
+                    style="background: #23283a; border-radius: 6px; border: 1px solid #2c3242; padding: 1.2em; box-sizing: border-box;">
+                    <div
+                        style="font-size: 1.22em; font-weight: 700; margin-bottom: 1em; color: #f3f6fa; letter-spacing: 0.01em;">
+                        Discovered Universe</div>
                     <div style="display: flex; flex-direction: column; gap: 1em;">
                         <div>
-                            <label for="systems_api_key" style="display: block; margin-bottom: 0.5em; color: #e6eaf3;">API Key:</label>
-                            <input type="text" id="systems_api_key" style="width: 100%; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; padding: 0.5em; border-radius: 4px; box-sizing: border-box;">
+                            <label for="systems_api_key"
+                                style="display: block; margin-bottom: 0.5em; color: #e6eaf3;">API Key:</label>
+                            <input type="text" id="systems_api_key"
+                                style="width: 100%; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; padding: 0.5em; border-radius: 4px; box-sizing: border-box;">
                         </div>
-                        <div style="color: #e6eaf3; font-size: 0.9em; margin-bottom: 0.0em;" id="systemsCount">There are currently 0 publicly discovered systems</div>
-                        <div style="color: #e6eaf3; font-size: 0.9em; margin-bottom: 1.0em;" id="totalDistance">You have currently travelled a total of 0 ly</div>
+                        <div style="color: #e6eaf3; font-size: 0.9em; margin-bottom: 0.0em;" id="systemsCount">There are
+                            currently 0 publicly discovered systems</div>
+                        <div style="color: #e6eaf3; font-size: 0.9em; margin-bottom: 1.0em;" id="totalDistance">You have
+                            currently travelled a total of 0 ly</div>
                         <div style="display: flex; flex-direction: column; gap: 0.5em;">
-                            <label style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
+                            <label
+                                style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
                                 <input type="checkbox" id="show_public_systems" style="margin: 0;">
                                 Show public systems
                             </label>
-                            <label style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
+                            <label
+                                style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
                                 <input type="checkbox" id="show_current_position" style="margin: 0;">
                                 Show current position
                             </label>
-                            <label style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
+                            <label
+                                style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
                                 <input type="checkbox" id="show_player_journey" style="margin: 0;">
                                 Show player journey
                             </label>
-                            <label style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
+                            <label
+                                style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
                                 <input type="checkbox" id="show_space_stations" style="margin: 0;">
                                 Show own space stations
                             </label>
-                            <label style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
+                            <label
+                                style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
                                 <input type="checkbox" id="show_enemy_stations" style="margin: 0;">
                                 Show enemy space stations
                             </label>
                         </div>
-                        <button id="loadSystemsBtn" type="button" style="background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; padding: 0.5em 1em; border-radius: 4px; cursor: pointer; width: 100%;">Load Systems</button>
+                        <button id="loadSystemsBtn" type="button"
+                            style="background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; padding: 0.5em 1em; border-radius: 4px; cursor: pointer; width: 100%;">Load
+                            Systems</button>
                     </div>
                 </div>
             </div>
 
             <div style="position: relative; width: 800px; height: 600px; background: #181c24;">
-                <canvas id="universeMap" style="width: 100%; height: 100%; touch-action: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;"></canvas>
+                <canvas id="universeMap"
+                    style="width: 100%; height: 100%; touch-action: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;"></canvas>
                 <!-- <div id="ssBlock" style="position: absolute; right: -500px; top: 75px; width: 300px; background: #23283a; border-radius: 6px; border: 1px solid #2c3242; padding: 1.2em; color: #e6eaf3; box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);">
                     <div class="block-label" style="margin-bottom: 1em;">Space Stations</div>
                     <div id="ssList"></div>
@@ -2011,19 +2188,22 @@
             </div>
         </div>
     </div>
-    
+
     <div id="probabilities-tab" class="tab-content">
         <div class="form-section" style="display: flex; flex-direction: row; gap: 2em;">
-            <div class="optimizer-block" style="margin-top: 1.0em; margin-left: 5px; width: 500px; min-width: 500px; max-width: 500px; min-height: 210px; max-height: 600px;">
+            <div class="optimizer-block"
+                style="margin-top: 1.0em; margin-left: 5px; width: 500px; min-width: 500px; max-width: 500px; min-height: 210px; max-height: 600px;">
                 <div class="block-label">
                     System Occurrence Probability
-                    <span style="color: #4fa3ff; margin-left: 5px; cursor: help;" title="Calculate the probability of observing a system with specific characteristics. This tool uses complex probability calculations involving multiple parameters (nodes, categories, qualities) and their interactions. Due to the mathematical complexity of these calculations, some results may require further refinement. The current implementation is being continuously improved for accuracy.">ⓘ</span>
+                    <span style="color: #4fa3ff; margin-left: 5px; cursor: help;"
+                        title="Calculate the probability of observing a system with specific characteristics. This tool uses complex probability calculations involving multiple parameters (nodes, categories, qualities) and their interactions. Due to the mathematical complexity of these calculations, some results may require further refinement. The current implementation is being continuously improved for accuracy.">ⓘ</span>
                     <span style="color: #ff4f4f; margin-left: 5px; font-size: 0.8em; font-weight: normal;">beta</span>
                 </div>
                 <div class="form-row" style="margin-bottom: 1em;">
                     <div class="form-group">
                         <label for="inhabited_system" style="color: #e6eaf3;">System status:</label>
-                        <select id="inhabited_system" name="inhabited_system" style="width: 12em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; padding: 0.2em; border-radius: 4px;">
+                        <select id="inhabited_system" name="inhabited_system"
+                            style="width: 12em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; padding: 0.2em; border-radius: 4px;">
                             <option value="any">Any</option>
                             <option value="inhabited">System is inhabited</option>
                             <option value="uninhabited">System is not inhabited</option>
@@ -2034,12 +2214,14 @@
                     <div class="form-group">
                         <label for="n_nodes">Number of nodes:</label>
                         <div class="input-group">
-                            <select id="n_nodes_type" name="n_nodes_type" style="width: 6em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; margin-right: 0.5em;">
+                            <select id="n_nodes_type" name="n_nodes_type"
+                                style="width: 6em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; margin-right: 0.5em;">
                                 <option value="exactly">Exactly</option>
                                 <option value="at least">At Least</option>
                                 <option value="any">Any</option>
                             </select>
-                            <input type="number" id="n_nodes" name="n_nodes" value="1" min="1" max="5" style="width: 3.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
+                            <input type="number" id="n_nodes" name="n_nodes" value="1" min="1" max="5"
+                                style="width: 3.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
                         </div>
                     </div>
                 </div>
@@ -2047,12 +2229,14 @@
                     <div class="form-group">
                         <label for="n_gatherable">Number of gathering nodes:</label>
                         <div class="input-group">
-                            <select id="n_gatherable_type" name="n_gatherable_type" style="width: 6em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; margin-right: 0.5em;">
+                            <select id="n_gatherable_type" name="n_gatherable_type"
+                                style="width: 6em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; margin-right: 0.5em;">
                                 <option value="exactly">Exactly</option>
                                 <option value="at least">At Least</option>
                                 <option value="any">Any</option>
                             </select>
-                            <input type="number" id="n_gatherable" name="n_gatherable" value="1" min="0" max="5" style="width: 3.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
+                            <input type="number" id="n_gatherable" name="n_gatherable" value="1" min="0" max="5"
+                                style="width: 3.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
                         </div>
                     </div>
                 </div>
@@ -2060,19 +2244,23 @@
                     <div class="form-group">
                         <label for="n_categories">Number of different categories:</label>
                         <div class="input-group">
-                            <select id="n_categories_type" name="n_categories_type" style="width: 6em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; margin-right: 0.5em;">
+                            <select id="n_categories_type" name="n_categories_type"
+                                style="width: 6em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; margin-right: 0.5em;">
                                 <option value="exactly">Exactly</option>
                                 <option value="at least">At Least</option>
                                 <option value="any">Any</option>
                             </select>
-                            <input type="number" id="n_categories" name="n_categories" value="1" min="1" max="4" style="width: 3.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
+                            <input type="number" id="n_categories" name="n_categories" value="1" min="1" max="4"
+                                style="width: 3.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242;">
                         </div>
                     </div>
                 </div>
-                <div id="quality-selections" style="margin-top: 0.5em; display: flex; flex-direction: column; gap: 0.3em;">
+                <div id="quality-selections"
+                    style="margin-top: 0.5em; display: flex; flex-direction: column; gap: 0.3em;">
                     <div class="form-row" style="display: flex; align-items: center; gap: 0.5em; margin-bottom: 0;">
                         <label style="color: #e6eaf3; min-width: 180px;">Gathering node 1 quality:</label>
-                        <select style="width: 8em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; padding: 0.2em; border-radius: 4px;">
+                        <select
+                            style="width: 8em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; padding: 0.2em; border-radius: 4px;">
                             <option value="any">Any</option>
                             <option value="1-30">1-30</option>
                             <option value="31-70">31-70</option>
@@ -2081,8 +2269,11 @@
                         </select>
                     </div>
                 </div>
-                <div style="margin-top: 1em; display: flex; flex-direction: column; align-items: flex-start; gap: 0.5em;">
-                    <button id="calculateProbabilityBtn" type="button" style="background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; padding: 0.5em 1em; border-radius: 4px; cursor: pointer;">Calculate probability</button>
+                <div
+                    style="margin-top: 1em; display: flex; flex-direction: column; align-items: flex-start; gap: 0.5em;">
+                    <button id="calculateProbabilityBtn" type="button"
+                        style="background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; padding: 0.5em 1em; border-radius: 4px; cursor: pointer;">Calculate
+                        probability</button>
                     <div id="probabilityResult" style="color: #e6eaf3; font-size: 1.1em;">
                         <div>Probability: <span id="probability_value"></span></div>
                         <div>Estimated number of systems in the universe: <span id="estimated_systems"></span></div>
@@ -2091,34 +2282,50 @@
             </div>
         </div>
     </div>
-    
+
     <!-- PvP Tab -->
     <div id="pvp-tab" class="tab-content">
         <div class="form-section" style="display: flex; flex-direction: row; gap: 2em; align-items: flex-start;">
             <!-- Attacking Squad JSON -->
             <div style="flex: 1; display: flex; flex-direction: column;">
-                <label for="attackingSquadInput" style="font-size: 1.15em; font-weight: 600; margin-bottom: 0.5em;">Attacking squad</label>
-                <textarea id="attackingSquadInput" style="width: 100%; min-width: 600px; max-width: 600px; height: 320px; min-height: 320px; max-height: 600px; resize: both; font-size: 1em; background: #23283a; color: #e6eaf3; border: 1px solid #2c3242; border-radius: 6px; padding: 0.7em; overflow: auto;"></textarea>
+                <label for="attackingSquadInput"
+                    style="font-size: 1.15em; font-weight: 600; margin-bottom: 0.5em;">Attacking squad</label>
+                <textarea id="attackingSquadInput"
+                    style="width: 100%; min-width: 600px; max-width: 600px; height: 320px; min-height: 320px; max-height: 600px; resize: both; font-size: 1em; background: #23283a; color: #e6eaf3; border: 1px solid #2c3242; border-radius: 6px; padding: 0.7em; overflow: auto;"></textarea>
             </div>
             <!-- Center controls -->
-            <div style="flex: none; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-width: 180px; max-width: 180px; margin-top: 2.5em; margin-left: 12.5em;">
+            <div
+                style="flex: none; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-width: 180px; max-width: 180px; margin-top: 2.5em; margin-left: 12.5em;">
                 <label style="margin-bottom: 1.2em; font-size: 1.1em; font-weight: 600;">PvP Battle
-                  <span id="pvpInfoBtn" style="color: #4fa3ff; cursor: pointer; font-size: 1.15em; margin-left: 0.4em; vertical-align: middle;" title="How to use the PvP simulator">ⓘ</span>
+                    <span id="pvpInfoBtn"
+                        style="color: #4fa3ff; cursor: pointer; font-size: 1.15em; margin-left: 0.4em; vertical-align: middle;"
+                        title="How to use the PvP simulator">ⓘ</span>
                 </label>
                 <!-- PvP Info Modal -->
-                <div id="pvpInfoModal" style="display:none; position:fixed; z-index:1001; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4); align-items:center; justify-content:center;">
-                  <div style="background:#222; color:#fff; padding:1.5em; border-radius:10px; max-width:600px; width:90vw; max-height:70vh; overflow:auto; box-shadow:0 4px 32px #000; position:relative;">
-                    <button id="closePvpInfo" style="position:absolute; top:0.5em; right:0.5em; background:none; border:none; color:#fff; font-size:1.5em; cursor:pointer;">&times;</button>
-                    <h2 style="margin-top:0;">How to use the PvP Simulator</h2>
-                    <div style="font-size:1.08em; line-height:1.6; margin-top:1em;">
-                      <ul style="margin-left:1.2em;">
-                        <li>Manually insert the <b>attacker</b> and <b>defender</b> squads in <b>JSON format</b> in the appropriate text areas. Use the provided example as a template for your squad JSON structure.</li>
-                        <li>If you do not know what a <b>JSON</b> is, this simulator is probably not for you and you can safely ignore this tab.</li>
-                        <li>Click <b>Fight</b> to simulate the PvP battle. You can adjust the number of fights and enable verbose output for a single fight. <b>Verbose will only be applied if you run exactly 1 fight, and in that case it will display the whole battle log.</b></li>
-                      </ul>
-                      <div style="margin-top:1.2em; background:#181c24; color:#e6eaf3; border:1px solid #2c3242; border-radius:6px; padding:0.8em; font-size:0.98em;">
-                        <b>Example squad JSON:</b>
-                        <pre style="white-space:pre-wrap; background:none; color:#4fa3ff; margin:0; padding:0; font-size:0.97em;">
+                <div id="pvpInfoModal"
+                    style="display:none; position:fixed; z-index:1001; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4); align-items:center; justify-content:center;">
+                    <div
+                        style="background:#222; color:#fff; padding:1.5em; border-radius:10px; max-width:600px; width:90vw; max-height:70vh; overflow:auto; box-shadow:0 4px 32px #000; position:relative;">
+                        <button id="closePvpInfo"
+                            style="position:absolute; top:0.5em; right:0.5em; background:none; border:none; color:#fff; font-size:1.5em; cursor:pointer;">&times;</button>
+                        <h2 style="margin-top:0;">How to use the PvP Simulator</h2>
+                        <div style="font-size:1.08em; line-height:1.6; margin-top:1em;">
+                            <ul style="margin-left:1.2em;">
+                                <li>Manually insert the <b>attacker</b> and <b>defender</b> squads in <b>JSON format</b>
+                                    in the appropriate text areas. Use the provided example as a template for your squad
+                                    JSON structure.</li>
+                                <li>If you do not know what a <b>JSON</b> is, this simulator is probably not for you and
+                                    you can safely ignore this tab.</li>
+                                <li>Click <b>Fight</b> to simulate the PvP battle. You can adjust the number of fights
+                                    and enable verbose output for a single fight. <b>Verbose will only be applied if you
+                                        run exactly 1 fight, and in that case it will display the whole battle log.</b>
+                                </li>
+                            </ul>
+                            <div
+                                style="margin-top:1.2em; background:#181c24; color:#e6eaf3; border:1px solid #2c3242; border-radius:6px; padding:0.8em; font-size:0.98em;">
+                                <b>Example squad JSON:</b>
+                                <pre
+                                    style="white-space:pre-wrap; background:none; color:#4fa3ff; margin:0; padding:0; font-size:0.97em;">
 {
   "squad": [
     {
@@ -2171,9 +2378,9 @@
 }
                               
                         </pre>
-                      </div>
+                            </div>
+                        </div>
                     </div>
-                  </div>
                 </div>
                 <div style="display: flex; flex-direction: column; align-items: center; gap: 0.7em;">
                     <div style="display: flex; align-items: center; gap: 0.7em;">
@@ -2181,27 +2388,33 @@
                     </div>
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 0.2em; width: 100%;">
                         <label for="pvpNFights" style="font-size: 1em; margin: 0;">Number of fights:</label>
-                        <input type="number" id="pvpNFights" min="1" max="1000000" value="1000" style="width: 6em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; margin-top: 0.2em;">
+                        <input type="number" id="pvpNFights" min="1" max="1000000" value="1000"
+                            style="width: 6em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; margin-top: 0.2em;">
                     </div>
                 </div>
-                <button id="pvpFightBtn" type="button" style="padding: 0.7em 2.2em; font-size: 1.1em; font-weight: 600; background: #36405a; color: #f3f6fa; border: 1px solid #4a5a7c; border-radius: 4px; cursor: pointer;">Fight</button>
+                <button id="pvpFightBtn" type="button"
+                    style="padding: 0.7em 2.2em; font-size: 1.1em; font-weight: 600; background: #36405a; color: #f3f6fa; border: 1px solid #4a5a7c; border-radius: 4px; cursor: pointer;">Fight</button>
             </div>
             <!-- Defending Squad JSON -->
             <div style="flex: 1; display: flex; flex-direction: column;">
-                <label for="defendingSquadInput" style="font-size: 1.15em; font-weight: 600; margin-bottom: 0.5em;">Defending squad</label>
-                <textarea id="defendingSquadInput" style="width: 100%; min-width: 600px; max-width: 600px; height: 320px; min-height: 320px; max-height: 600px; resize: both; font-size: 1em; background: #23283a; color: #e6eaf3; border: 1px solid #2c3242; border-radius: 6px; padding: 0.7em; overflow: auto;"></textarea>
+                <label for="defendingSquadInput"
+                    style="font-size: 1.15em; font-weight: 600; margin-bottom: 0.5em;">Defending squad</label>
+                <textarea id="defendingSquadInput"
+                    style="width: 100%; min-width: 600px; max-width: 600px; height: 320px; min-height: 320px; max-height: 600px; resize: both; font-size: 1em; background: #23283a; color: #e6eaf3; border: 1px solid #2c3242; border-radius: 6px; padding: 0.7em; overflow: auto;"></textarea>
             </div>
         </div>
         <!-- Battle Output -->
         <div style="margin-top: 2.5em; display: flex; flex-direction: row; gap: 2em;">
             <div style="flex: 1;">
-                <label for="pvpBattleOutput" style="font-size: 1.12em; font-weight: 600; margin-bottom: 0.5em;">Battle output</label>
-                <textarea id="pvpBattleOutput" readonly style="width: 100%; min-width: 98%; max-width: 100%; height: 260px; min-height: 120px; max-height: 600px; resize: vertical; font-size: 1em; background: #23283a; color: #e6eaf3; border: 1px solid #2c3242; border-radius: 6px; padding: 0.7em; overflow: auto;"></textarea>
+                <label for="pvpBattleOutput" style="font-size: 1.12em; font-weight: 600; margin-bottom: 0.5em;">Battle
+                    output</label>
+                <textarea id="pvpBattleOutput" readonly
+                    style="width: 100%; min-width: 98%; max-width: 100%; height: 260px; min-height: 120px; max-height: 600px; resize: vertical; font-size: 1em; background: #23283a; color: #e6eaf3; border: 1px solid #2c3242; border-radius: 6px; padding: 0.7em; overflow: auto;"></textarea>
+            </div>
         </div>
     </div>
-</div>
-<!-- End PvP Tab -->
-    
+    <!-- End PvP Tab -->
+
     <!-- Tab bar -->
     <div class="tab-container">
         <div class="tab active" data-tab="battling-tab">Battling</div>
@@ -2210,18 +2423,19 @@
         <div class="tab" data-tab="probabilities-tab">Probabilities</div>
         <div class="tab" data-tab="pvp-tab">PvP</div>
     </div>
-    
+
     <div id="playerResult"></div>
     <footer>
         <span>Proudly made by anfneub</span>
         <span style="margin-left: 2.5em;" id="lastUpdated"></span>
         <span style="margin-left: 2.5em;">Space Odyssey Version 1.7.11 2025-12-12</span>
-        <span style="margin-left: 2.5em; cursor: pointer; color: #4fa3ff; text-decoration: underline;" id="changelogLink">Changelog</span>
+        <span style="margin-left: 2.5em; cursor: pointer; color: #4fa3ff; text-decoration: underline;"
+            id="changelogLink">Changelog</span>
     </footer>
-    
+
     <!-- Add tab switching script -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const tabs = document.querySelectorAll('.tab');
             // Function to switch tabs
             function switchTab(tab) {
@@ -2269,272 +2483,277 @@
         }
     </script>
     <!-- Changelog Modal -->
-    <div id="changelogModal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4); align-items:center; justify-content:center;">
-        <div style="background:#222; color:#fff; padding:1.5em; border-radius:10px; max-width:650px; width:117vw; max-width:65vw; max-height:70vh; overflow:auto; box-shadow:0 4px 32px #000; position:relative;">
-            <button id="closeChangelog" style="position:absolute; top:0.5em; right:0.5em; background:none; border:none; color:#fff; font-size:1.5em; cursor:pointer;">&times;</button>
+    <div id="changelogModal"
+        style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4); align-items:center; justify-content:center;">
+        <div
+            style="background:#222; color:#fff; padding:1.5em; border-radius:10px; max-width:650px; width:117vw; max-width:65vw; max-height:70vh; overflow:auto; box-shadow:0 4px 32px #000; position:relative;">
+            <button id="closeChangelog"
+                style="position:absolute; top:0.5em; right:0.5em; background:none; border:none; color:#fff; font-size:1.5em; cursor:pointer;">&times;</button>
             <h2 style="margin-top:0;">Changelog</h2>
-            <div id="changelogContent" style="white-space:pre-wrap; background:#181818; padding:1em; border-radius:6px; max-height:50vh; overflow:auto; font-size:1em; font-family:inherit;">Loading...</div>
+            <div id="changelogContent"
+                style="white-space:pre-wrap; background:#181818; padding:1em; border-radius:6px; max-height:50vh; overflow:auto; font-size:1em; font-family:inherit;">
+                Loading...</div>
         </div>
     </div>
     <script>
-        document.getElementById('changelogLink').addEventListener('click', function() {
+        document.getElementById('changelogLink').addEventListener('click', function () {
             const modal = document.getElementById('changelogModal');
             modal.style.display = 'flex';
             fetch('changelog.txt')
-            .then(r => r.text())
-            .then(txt => {
-                // Format lines starting with '-' as list items
-                const lines = txt.split('\n');
-                let html = '';
-                let inList = false;
-                for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i];
-                    if (/^\s*- /.test(line)) {
-                        if (!inList) { html += '<ul style="margin:0 0 0 1.5em; padding-left:1.2em;">'; inList = true; }
+                .then(r => r.text())
+                .then(txt => {
+                    // Format lines starting with '-' as list items
+                    const lines = txt.split('\n');
+                    let html = '';
+                    let inList = false;
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i];
+                        if (/^\s*- /.test(line)) {
+                            if (!inList) { html += '<ul style="margin:0 0 0 1.5em; padding-left:1.2em;">'; inList = true; }
                             html += '<li style="margin-bottom:0.2em;">' + line.replace(/^\s*- /, '') + '</li>';
                         } else {
                             if (inList) { html += '</ul>'; inList = false; }
                             // If the line is not empty, wrap in <div>, else add a blank line
-                                html += line.trim() ? '<div>' + line + '</div>' : '<div style="height:0.7em;"></div>';
-                            }
+                            html += line.trim() ? '<div>' + line + '</div>' : '<div style="height:0.7em;"></div>';
                         }
-                        if (inList) html += '</ul>';
-                        document.getElementById('changelogContent').innerHTML = html;
-                    })
-                    .catch(() => {
-                        document.getElementById('changelogContent').textContent = 'Could not load changelog.';
-                    });
+                    }
+                    if (inList) html += '</ul>';
+                    document.getElementById('changelogContent').innerHTML = html;
+                })
+                .catch(() => {
+                    document.getElementById('changelogContent').textContent = 'Could not load changelog.';
                 });
-                document.getElementById('closeChangelog').addEventListener('click', function() {
-                    document.getElementById('changelogModal').style.display = 'none';
+        });
+        document.getElementById('closeChangelog').addEventListener('click', function () {
+            document.getElementById('changelogModal').style.display = 'none';
+        });
+        // Optional: close modal on outside click
+        document.getElementById('changelogModal').addEventListener('click', function (e) {
+            if (e.target === this) this.style.display = 'none';
+        });
+    </script>
+    <script src="script.js"></script>
+    <script src="rhill-voronoi-core.min.js"></script>
+    <script src="universe_map.js"></script>
+    <script type="module">
+        // Import probability functions
+        import { probability_of_observation_with_per_gatherable_qualities } from './probabilities.js';
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Declare variables at the top
+            const nNodesType = document.getElementById('n_nodes_type');
+            const nNodes = document.getElementById('n_nodes');
+            const nGatherableType = document.getElementById('n_gatherable_type');
+            const nGatherable = document.getElementById('n_gatherable');
+            const nCategoriesType = document.getElementById('n_categories_type');
+            const nCategories = document.getElementById('n_categories');
+            const qualitySelections = document.getElementById('quality-selections');
+
+            // Quality ranges based on the probabilities.js file
+            const qualityRanges = [
+                { label: "1-30", value: "1-30" },
+                { label: "31-70", value: "31-70" },
+                { label: "71-90", value: "71-90" },
+                { label: "91-100", value: "91-100" }
+            ];
+
+            function updateQualitySelections() {
+                const numGatherable = parseInt(nGatherable.value) || 0;
+                const isAny = nGatherableType.value === 'any';
+
+                // Keep the first selection row
+                const firstSelection = qualitySelections.firstElementChild;
+                qualitySelections.innerHTML = '';
+                if (firstSelection) {
+                    qualitySelections.appendChild(firstSelection);
+                }
+
+                if (isAny || numGatherable === 0) {
+                    qualitySelections.style.display = 'none';
+                    return;
+                }
+
+                qualitySelections.style.display = 'flex';
+
+                // Add additional selections starting from index 1
+                for (let i = 1; i < numGatherable; i++) {
+                    const selectionDiv = document.createElement('div');
+                    selectionDiv.className = 'form-row';
+                    selectionDiv.style.marginBottom = '0';
+                    selectionDiv.style.display = 'flex';
+                    selectionDiv.style.alignItems = 'center';
+                    selectionDiv.style.gap = '0.5em';
+
+                    const label = document.createElement('label');
+                    label.textContent = `Gathering node ${i + 1} quality:`;
+                    label.style.color = '#e6eaf3';
+                    label.style.minWidth = '180px';
+
+                    const select = document.createElement('select');
+                    select.style.width = '8em';
+                    select.style.background = '#36405a';
+                    select.style.color = '#e6eaf3';
+                    select.style.border = '1px solid #2c3242';
+                    select.style.padding = '0.2em';
+                    select.style.borderRadius = '4px';
+
+                    // Add "Any" option
+                    const anyOption = document.createElement('option');
+                    anyOption.value = 'any';
+                    anyOption.textContent = 'Any';
+                    select.appendChild(anyOption);
+
+                    // Add quality range options
+                    qualityRanges.forEach(range => {
+                        const option = document.createElement('option');
+                        option.value = range.value;
+                        option.value = range.value;
+                        option.textContent = range.label;
+                        select.appendChild(option);
+                    });
+
+                    selectionDiv.appendChild(label);
+                    selectionDiv.appendChild(select);
+                    qualitySelections.appendChild(selectionDiv);
+                }
+            }
+
+            function handleTypeChange(selectElement, inputElement) {
+                const isAny = selectElement.value === 'any';
+                inputElement.disabled = isAny;
+                inputElement.readOnly = isAny;
+                inputElement.style.background = isAny ? '#2c3242' : '#36405a';
+                inputElement.style.cursor = isAny ? 'not-allowed' : 'text';
+                inputElement.style.opacity = isAny ? '0.7' : '1';
+                inputElement.style.pointerEvents = isAny ? 'none' : 'auto';
+
+                // Update quality selections when gatherable type changes
+                if (selectElement === nGatherableType) {
+                    updateQualitySelections();
+                }
+            }
+
+            // Add event listeners for type changes
+            ['n_nodes_type', 'n_gatherable_type', 'n_categories_type'].forEach(id => {
+                const select = document.getElementById(id);
+                if (select) {
+                    select.addEventListener('change', function () {
+                        handleTypeChange(this, document.getElementById(id.replace('_type', '')));
+                    });
+                    // Set initial state
+                    handleTypeChange(select, document.getElementById(id.replace('_type', '')));
+                }
+            });
+
+            // Prevent input when disabled
+            ['n_nodes', 'n_gatherable', 'n_categories'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('keydown', function (e) {
+                        if (this.disabled) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    });
+                    input.addEventListener('input', function (e) {
+                        if (this.disabled) {
+                            e.preventDefault();
+                            this.value = '';
+                            return false;
+                        }
+                    });
+                }
+            });
+
+            // Add input event listener for n_gatherable to update quality selections
+            nGatherable.addEventListener('input', updateQualitySelections);
+
+            // Set initial states
+            handleTypeChange(nNodesType, nNodes);
+            handleTypeChange(nGatherableType, nGatherable);
+            handleTypeChange(nCategoriesType, nCategories);
+
+            // Ensure quality selections are initialized
+            updateQualitySelections();
+
+            // Calculate probability
+            document.getElementById('calculateProbabilityBtn').addEventListener('click', function () {
+                const nNodes = document.getElementById('n_nodes_type').value === 'any' ? 'Any' : parseInt(document.getElementById('n_nodes').value);
+                const nNodesType = document.getElementById('n_nodes_type').value;
+                const nGatherable = document.getElementById('n_gatherable_type').value === 'any' ? 'Any' : parseInt(document.getElementById('n_gatherable').value);
+                const nGatherableType = document.getElementById('n_gatherable_type').value;
+                const nCategories = document.getElementById('n_categories_type').value === 'any' ? 'Any' : parseInt(document.getElementById('n_categories').value);
+                const nCategoriesType = document.getElementById('n_categories_type').value;
+
+                // Collect quality ranges from all quality selection dropdowns
+                const qualityRanges = [];
+                document.querySelectorAll('#quality-selections select').forEach(select => {
+                    if (select.value === 'any') {
+                        qualityRanges.push('Any');
+                    } else {
+                        const [start, end] = select.value.split('-').map(Number);
+                        qualityRanges.push([start, end]);
+                    }
+                });
+
+                // Calculate probability
+                const inhabitedSystemValue = document.getElementById('inhabited_system').value;
+                const inhabitedSystem = inhabitedSystemValue === 'any' ? null : inhabitedSystemValue === 'inhabited';
+
+                const probability = probability_of_observation_with_per_gatherable_qualities(
+                    nNodes,
+                    nNodesType,
+                    nGatherable,
+                    nGatherableType,
+                    nCategories,
+                    nCategoriesType,
+                    qualityRanges,
+                    inhabitedSystem
+                );
+
+                // Format probability with more decimal places for small values
+                const formatProbability = (prob) => {
+                    if (prob < 0.001) {
+                        return `${(prob * 100).toFixed(6)}%`;
+                    }
+                    return `${(prob * 100).toFixed(2)}%`;
+                };
+
+                // Calculate and format estimated number of systems
+                const estimatedSystems = probability * 4000000;
+                const formatEstimatedSystems = (num) => {
+                    if (num < 0.1) {
+                        return num.toFixed(6);
+                    }
+                    return num.toFixed(2);
+                };
+
+                // Display results
+                document.getElementById('probability_value').textContent = formatProbability(probability);
+                document.getElementById('estimated_systems').textContent = formatEstimatedSystems(estimatedSystems);
+            });
+        });
+    </script>
+    <script>
+        // PvP Info Modal logic
+        document.addEventListener('DOMContentLoaded', function () {
+            const infoBtn = document.getElementById('pvpInfoBtn');
+            const infoModal = document.getElementById('pvpInfoModal');
+            const closeBtn = document.getElementById('closePvpInfo');
+            if (infoBtn && infoModal && closeBtn) {
+                infoBtn.addEventListener('click', function () {
+                    infoModal.style.display = 'flex';
+                });
+                closeBtn.addEventListener('click', function () {
+                    infoModal.style.display = 'none';
                 });
                 // Optional: close modal on outside click
-                document.getElementById('changelogModal').addEventListener('click', function(e) {
+                infoModal.addEventListener('click', function (e) {
                     if (e.target === this) this.style.display = 'none';
                 });
-            </script>
-            <script src="script.js"></script>
-            <script src="rhill-voronoi-core.min.js"></script>
-            <script src="universe_map.js"></script>
-            <script type="module">
-                // Import probability functions
-                import { probability_of_observation_with_per_gatherable_qualities } from './probabilities.js';
-                
-                document.addEventListener('DOMContentLoaded', function() {
-                    // Declare variables at the top
-                    const nNodesType = document.getElementById('n_nodes_type');
-                    const nNodes = document.getElementById('n_nodes');
-                    const nGatherableType = document.getElementById('n_gatherable_type');
-                    const nGatherable = document.getElementById('n_gatherable');
-                    const nCategoriesType = document.getElementById('n_categories_type');
-                    const nCategories = document.getElementById('n_categories');
-                    const qualitySelections = document.getElementById('quality-selections');
-                    
-                    // Quality ranges based on the probabilities.js file
-                    const qualityRanges = [
-                    { label: "1-30", value: "1-30" },
-                    { label: "31-70", value: "31-70" },
-                    { label: "71-90", value: "71-90" },
-                    { label: "91-100", value: "91-100" }
-                    ];
-                    
-                    function updateQualitySelections() {
-                        const numGatherable = parseInt(nGatherable.value) || 0;
-                        const isAny = nGatherableType.value === 'any';
-                        
-                        // Keep the first selection row
-                        const firstSelection = qualitySelections.firstElementChild;
-                        qualitySelections.innerHTML = '';
-                        if (firstSelection) {
-                            qualitySelections.appendChild(firstSelection);
-                        }
-                        
-                        if (isAny || numGatherable === 0) {
-                            qualitySelections.style.display = 'none';
-                            return;
-                        }
-                        
-                        qualitySelections.style.display = 'flex';
-                        
-                        // Add additional selections starting from index 1
-                        for (let i = 1; i < numGatherable; i++) {
-                            const selectionDiv = document.createElement('div');
-                            selectionDiv.className = 'form-row';
-                            selectionDiv.style.marginBottom = '0';
-                            selectionDiv.style.display = 'flex';
-                            selectionDiv.style.alignItems = 'center';
-                            selectionDiv.style.gap = '0.5em';
-                            
-                            const label = document.createElement('label');
-                            label.textContent = `Gathering node ${i + 1} quality:`;
-                            label.style.color = '#e6eaf3';
-                            label.style.minWidth = '180px';
-                            
-                            const select = document.createElement('select');
-                            select.style.width = '8em';
-                            select.style.background = '#36405a';
-                            select.style.color = '#e6eaf3';
-                            select.style.border = '1px solid #2c3242';
-                            select.style.padding = '0.2em';
-                            select.style.borderRadius = '4px';
-                            
-                            // Add "Any" option
-                            const anyOption = document.createElement('option');
-                            anyOption.value = 'any';
-                            anyOption.textContent = 'Any';
-                            select.appendChild(anyOption);
-                            
-                            // Add quality range options
-                            qualityRanges.forEach(range => {
-                                const option = document.createElement('option');
-                                option.value = range.value;
-                                option.value = range.value;
-                                option.textContent = range.label;
-                                select.appendChild(option);
-                            });
-                            
-                            selectionDiv.appendChild(label);
-                            selectionDiv.appendChild(select);
-                            qualitySelections.appendChild(selectionDiv);
-                        }
-                    }
-                    
-                    function handleTypeChange(selectElement, inputElement) {
-                        const isAny = selectElement.value === 'any';
-                        inputElement.disabled = isAny;
-                        inputElement.readOnly = isAny;
-                        inputElement.style.background = isAny ? '#2c3242' : '#36405a';
-                        inputElement.style.cursor = isAny ? 'not-allowed' : 'text';
-                        inputElement.style.opacity = isAny ? '0.7' : '1';
-                        inputElement.style.pointerEvents = isAny ? 'none' : 'auto';
-                        
-                        // Update quality selections when gatherable type changes
-                        if (selectElement === nGatherableType) {
-                            updateQualitySelections();
-                        }
-                    }
-                    
-                    // Add event listeners for type changes
-                    ['n_nodes_type', 'n_gatherable_type', 'n_categories_type'].forEach(id => {
-                        const select = document.getElementById(id);
-                        if (select) {
-                            select.addEventListener('change', function() {
-                                handleTypeChange(this, document.getElementById(id.replace('_type', '')));
-                            });
-                            // Set initial state
-                            handleTypeChange(select, document.getElementById(id.replace('_type', '')));
-                        }
-                    });
-                    
-                    // Prevent input when disabled
-                    ['n_nodes', 'n_gatherable', 'n_categories'].forEach(id => {
-                        const input = document.getElementById(id);
-                        if (input) {
-                            input.addEventListener('keydown', function(e) {
-                                if (this.disabled) {
-                                    e.preventDefault();
-                                    return false;
-                                }
-                            });
-                            input.addEventListener('input', function(e) {
-                                if (this.disabled) {
-                                    e.preventDefault();
-                                    this.value = '';
-                                    return false;
-                                }
-                            });
-                        }
-                    });
-                    
-                    // Add input event listener for n_gatherable to update quality selections
-                    nGatherable.addEventListener('input', updateQualitySelections);
-                    
-                    // Set initial states
-                    handleTypeChange(nNodesType, nNodes);
-                    handleTypeChange(nGatherableType, nGatherable);
-                    handleTypeChange(nCategoriesType, nCategories);
-                    
-                    // Ensure quality selections are initialized
-                    updateQualitySelections();
-                    
-                    // Calculate probability
-                    document.getElementById('calculateProbabilityBtn').addEventListener('click', function() {
-                        const nNodes = document.getElementById('n_nodes_type').value === 'any' ? 'Any' : parseInt(document.getElementById('n_nodes').value);
-                        const nNodesType = document.getElementById('n_nodes_type').value;
-                        const nGatherable = document.getElementById('n_gatherable_type').value === 'any' ? 'Any' : parseInt(document.getElementById('n_gatherable').value);
-                        const nGatherableType = document.getElementById('n_gatherable_type').value;
-                        const nCategories = document.getElementById('n_categories_type').value === 'any' ? 'Any' : parseInt(document.getElementById('n_categories').value);
-                        const nCategoriesType = document.getElementById('n_categories_type').value;
-                        
-                        // Collect quality ranges from all quality selection dropdowns
-                        const qualityRanges = [];
-                        document.querySelectorAll('#quality-selections select').forEach(select => {
-                            if (select.value === 'any') {
-                                qualityRanges.push('Any');
-                            } else {
-                                const [start, end] = select.value.split('-').map(Number);
-                                qualityRanges.push([start, end]);
-                            }
-                        });
-                        
-                        // Calculate probability
-                        const inhabitedSystemValue = document.getElementById('inhabited_system').value;
-                        const inhabitedSystem = inhabitedSystemValue === 'any' ? null : inhabitedSystemValue === 'inhabited';
-                        
-                        const probability = probability_of_observation_with_per_gatherable_qualities(
-                        nNodes,
-                        nNodesType,
-                        nGatherable,
-                        nGatherableType,
-                        nCategories,
-                        nCategoriesType,
-                        qualityRanges,
-                        inhabitedSystem
-                        );
-                        
-                        // Format probability with more decimal places for small values
-                        const formatProbability = (prob) => {
-                            if (prob < 0.001) {
-                                return `${(prob * 100).toFixed(6)}%`;
-                            }
-                            return `${(prob * 100).toFixed(2)}%`;
-                        };
-                        
-                        // Calculate and format estimated number of systems
-                        const estimatedSystems = probability * 4000000;
-                        const formatEstimatedSystems = (num) => {
-                            if (num < 0.1) {
-                                return num.toFixed(6);
-                            }
-                            return num.toFixed(2);
-                        };
-                        
-                        // Display results
-                        document.getElementById('probability_value').textContent = formatProbability(probability);
-                        document.getElementById('estimated_systems').textContent = formatEstimatedSystems(estimatedSystems);
-                    });
-                });
-            </script>
-            <script>
-                // PvP Info Modal logic
-                document.addEventListener('DOMContentLoaded', function() {
-                    const infoBtn = document.getElementById('pvpInfoBtn');
-                    const infoModal = document.getElementById('pvpInfoModal');
-                    const closeBtn = document.getElementById('closePvpInfo');
-                    if (infoBtn && infoModal && closeBtn) {
-                        infoBtn.addEventListener('click', function() {
-                            infoModal.style.display = 'flex';
-                        });
-                        closeBtn.addEventListener('click', function() {
-                            infoModal.style.display = 'none';
-                        });
-                        // Optional: close modal on outside click
-                        infoModal.addEventListener('click', function(e) {
-                            if (e.target === this) this.style.display = 'none';
-                        });
-                    }
-                });
-            </script>
-        </body>
-        </html> 
-        
+            }
+        });
+    </script>
+</body>
+
+</html>
