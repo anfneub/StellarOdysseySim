@@ -885,7 +885,7 @@
                     const usedThreads = getRecommendedWorkerCount();
                     const pool = new WorkerPool(usedThreads);
                     const target = document.querySelector('input[name="optimize_target"]:checked').value;
-                    // Utility function to create a range [start, end] 
+                    // Utility function to create a range [start, end]
                     function range(start, end) {
                         return Array.from({ length: end - start + 1 }, (_, i) => i + start);
                     }
@@ -2139,13 +2139,16 @@
                         </div>
                         <div style="color: #e6eaf3; font-size: 0.9em; margin-bottom: 0.0em;" id="systemsCount">There are
                             currently 0 publicly discovered systems</div>
-                        <div style="color: #e6eaf3; font-size: 0.9em; margin-bottom: 1.0em;" id="totalDistance">You have
-                            currently travelled a total of 0 ly</div>
                         <div style="display: flex; flex-direction: column; gap: 0.5em;">
                             <label
                                 style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
                                 <input type="checkbox" id="show_public_systems" style="margin: 0;">
-                                Show public systems
+                                    Show public systems
+                            </label>
+                            <label
+                                style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
+                                <input type="checkbox" id="show_dungeons" style="margin: 0;">
+                                Show dungeons
                             </label>
                             <label
                                 style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
@@ -2376,7 +2379,7 @@
     }
   ]
 }
-                              
+
                         </pre>
                             </div>
                         </div>

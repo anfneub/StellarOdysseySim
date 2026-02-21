@@ -26,6 +26,10 @@ class UniverseMap {
         this.hoveredEnemyStation = null; // Added for enemy stations
         this.visible = this.getVisibleRange();
 
+        this.dungeonIcon = new Image();
+        this.dungeonIcon.src = 'icons/dungeon.png';
+        this.dungeonIcon.onload = () => this.draw();
+
         this.userIcon = new Image();
         this.userIcon.src = 'icons/user.png';
         this.userIcon.onload = () => this.draw();
@@ -33,7 +37,7 @@ class UniverseMap {
         this.voyagerIcon = new Image();
         this.voyagerIcon.src = 'icons/satellite.png';
         this.voyagerIcon.onload = () => this.draw();
-                
+
         // Touch support variables
         this.touchStartDistance = 0;
         this.touchStartZoomLevel = 1;
@@ -45,19 +49,22 @@ class UniverseMap {
         this.lastTouchTime = 0;
         this.touchStartX = 0;
         this.touchStartY = 0;
-        
+
         // Load checkbox states from localStorage
         this.showPublicSystems = localStorage.getItem('showPublicSystems') === 'true';
         this.showCurrentPosition = localStorage.getItem('showCurrentPosition') === 'true';
         this.showPlayerJourney = localStorage.getItem('showPlayerJourney') === 'true';
         this.showSpaceStations = localStorage.getItem('showSpaceStations') === 'true';
         this.showEnemyStations = localStorage.getItem('showEnemyStations') === 'true';
+        this.showEnemyStations = localStorage.getItem('showEnemyStations') === 'true';
+        this.showDungeons = localStorage.getItem('showDungeons') === null ? true : localStorage.getItem('showDungeons') === 'true';
         this.squadronSpaceStations = [];
         this.enemyStations = [];
-        
+        this.dungeons = [];
+
         // Space station coordinates (hardcoded)
         // this.spaceStations = [];
-        
+
         // Set initial checkbox states
         document.getElementById('show_public_systems').checked = this.showPublicSystems;
         document.getElementById('show_current_position').checked = this.showCurrentPosition;
@@ -71,7 +78,7 @@ class UniverseMap {
             localStorage.setItem('showPublicSystems', this.showPublicSystems);
             this.draw();
         });
-        
+
         document.getElementById('show_current_position').addEventListener('change', (e) => {
             this.showCurrentPosition = e.target.checked;
             localStorage.setItem('showCurrentPosition', this.showCurrentPosition);
@@ -96,6 +103,16 @@ class UniverseMap {
             this.draw();
         });
 
+        const showDungeonsCheckbox = document.getElementById('show_dungeons');
+        if (showDungeonsCheckbox) {
+            showDungeonsCheckbox.checked = this.showDungeons;
+            showDungeonsCheckbox.addEventListener('change', (e) => {
+                this.showDungeons = e.target.checked;
+                localStorage.setItem('showDungeons', this.showDungeons);
+                this.draw();
+            });
+        }
+
         // Set canvas size
         this.resizeCanvas();
         window.addEventListener('resize', () => this.resizeCanvas());
@@ -105,7 +122,7 @@ class UniverseMap {
         this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
         this.canvas.addEventListener('mouseup', () => this.handleMouseUp());
         this.canvas.addEventListener('wheel', (e) => this.handleWheel(e));
-        
+
         // Add touch event listeners for mobile support
         this.canvas.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
         this.canvas.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
@@ -135,16 +152,16 @@ class UniverseMap {
         const container = this.canvas.parentElement;
         const containerWidth = container.clientWidth;
         const containerHeight = container.clientHeight;
-        
+
         // Check if we're on mobile (container width is the limiting factor)
         const isMobile = containerWidth < 768;
-        
+
         if (isMobile) {
             // On mobile, use the smaller dimension to ensure square aspect ratio
             const size = Math.min(containerWidth, containerHeight, window.innerHeight * 0.7);
             this.canvas.width = size;
             this.canvas.height = size;
-            
+
             // Set CSS to maintain square aspect ratio
             this.canvas.style.width = `${size}px`;
             this.canvas.style.height = `${size}px`;
@@ -152,16 +169,16 @@ class UniverseMap {
             // Desktop behavior - use the height as base and make width 15% larger (+5% more)
             const height = Math.min(containerWidth / 1.18, containerHeight) * 1.18;
             const width = height * 1.18;
-            
+
             // Set width and height
             this.canvas.width = width;
             this.canvas.height = height;
-            
+
             // Ensure the canvas maintains its shape
             this.canvas.style.width = `${width}px`;
             this.canvas.style.height = `${height}px`;
         }
-        
+
         this.draw();
     }
 
@@ -175,6 +192,18 @@ class UniverseMap {
         this.draw();
     }
 
+    loadDungeons(data) {
+        if (data.dungeons && Array.isArray(data.dungeons)) {
+            // Flatten the structure for easier rendering
+            this.dungeons = data.dungeons.map(d => ({
+                ...d,
+                x: d.system.coordinate_x,
+                y: d.system.coordinate_y
+            }));
+            this.draw();
+        }
+    }
+
     setPlayerPosition(position) {
         this.playerPosition = position;
         this.draw();
@@ -183,29 +212,6 @@ class UniverseMap {
     setJournalData(journalData) {
         this.journalData = journalData;
         this.colorCache = new Map(); // Clear color cache when journal changes
-        // Calculate and display total distance traveled
-        const distanceElement = document.getElementById('totalDistance');
-        if (distanceElement && this.journalData && this.journalData.fullJournal.length > 0) {
-            let totalDistance = 0;
-            const journal = this.journalData.fullJournal;
-            
-            // Calculate distance between consecutive non-starter systems
-            for (let i = 1; i < journal.length; i++) {
-                const prev = journal[i-1];
-                const curr = journal[i];
-                
-                // Only add distance if neither system is a starter
-                if (!prev.starter && !curr.starter) {
-                    const dx = curr.coordinate_x - prev.coordinate_x;
-                    const dy = curr.coordinate_y - prev.coordinate_y;
-                    totalDistance += 10 * Math.sqrt(dx * dx + dy * dy);
-                }
-            }
-            
-            distanceElement.textContent = `You currently have travelled ${totalDistance.toFixed(2)} ly`;
-        } else if (distanceElement) {
-            distanceElement.textContent = 'You currently have travelled 0 ly';
-        }
         this.draw();
     }
 
@@ -225,18 +231,18 @@ class UniverseMap {
         if (this.colorCache.has(date)) {
             return this.colorCache.get(date);
         }
-        
+
         // Convert date string to timestamp
         const timestamp = new Date(date).getTime();
-        
+
         // Get min and max timestamps from journal data
         const timestamps = this.journalData.fullJournal.map(entry => new Date(entry.date).getTime());
         const minTimestamp = Math.min(...timestamps);
         const maxTimestamp = Math.max(...timestamps);
-        
+
         // Normalize timestamp to 0-1 range
         const normalized = (timestamp - minTimestamp) / (maxTimestamp - minTimestamp);
-        
+
         // Use a color gradient from blue (old) to red (new)
         const hue = (1 - normalized) * 240; // 240 (blue) to 0 (red)
         const color = `hsl(${hue}, 100%, 50%)`;
@@ -250,7 +256,7 @@ class UniverseMap {
 
         const x = toPixelX(position.coordinate_x || position.x);
         const y = toPixelY(position.coordinate_y || position.y);
-        
+
         const padding = this.getPadding();
         const width = this.canvas.width;
         const height = this.canvas.height;
@@ -298,7 +304,7 @@ class UniverseMap {
             ctx.beginPath();
             ctx.arc(x, circleCenterY, circleRadius, 0, Math.PI * 2);
             ctx.stroke(); // Strokes the circle
-            
+
             ctx.restore();
 
             // Draw the icon inside the head
@@ -379,11 +385,11 @@ class UniverseMap {
         // Top edge
         ctx.lineTo(padding.left, padding.top);
         ctx.stroke();
-        
+
         // Draw vertical lines and x-coordinates
         for (let i = startX; i <= endX; i += 250) {
             const x = toPixelX(i);
-            
+
             // Only draw grid lines within the graph boundaries
             if (x >= padding.left && x <= width - padding.right) {
                 // Draw grid line
@@ -412,7 +418,7 @@ class UniverseMap {
         // Draw horizontal lines and y-coordinates
         for (let i = startY; i <= endY; i += 250) {
             const y = toPixelY(i);
-            
+
             // Only draw grid lines within the graph boundaries
             if (y >= padding.top && y <= height - padding.bottom) {
                 // Draw grid line
@@ -464,11 +470,11 @@ class UniverseMap {
             const dates = this.journalData.fullJournal.map(entry => new Date(entry.date));
             const minDate = new Date(Math.min(...dates));
             const maxDate = new Date(Math.max(...dates));
-            
+
             // Format dates
             const formatDate = (date) => {
-                return date.toLocaleDateString('en-US', { 
-                    month: 'short', 
+                return date.toLocaleDateString('en-US', {
+                    month: 'short',
                     day: 'numeric',
                     year: 'numeric'
                 });
@@ -479,18 +485,18 @@ class UniverseMap {
             ctx.fillStyle = '#e6eaf3';
             ctx.textAlign = 'left';
             ctx.font = '10px Arial';
-            
+
             for (let i = 0; i <= numTicks; i++) {
                 const y = colorbarY + (colorbarHeight * i / numTicks);
                 const date = new Date(minDate.getTime() + (maxDate.getTime() - minDate.getTime()) * (1 - i / numTicks));
-                
+
                 // Draw tick line
                 ctx.beginPath();
                 ctx.moveTo(colorbarX + colorbarWidth + 2, y);
                 ctx.lineTo(colorbarX + colorbarWidth + 5, y);
                 ctx.strokeStyle = '#e6eaf3';
                 ctx.stroke();
-                
+
                 // Draw date label
                 ctx.fillText(formatDate(date), colorbarX + colorbarWidth + 8, y + 3);
             }
@@ -503,8 +509,8 @@ class UniverseMap {
                 if (system.coordinate_x < this.visible.left ||
                     system.coordinate_x > this.visible.right ||
                     system.coordinate_y < this.visible.top ||
-                    system.coordinate_y > this.visible.bottom) { 
-                        return; 
+                    system.coordinate_y > this.visible.bottom) {
+                    return;
                 }
 
                 const x = toPixelX(system.coordinate_x);
@@ -513,13 +519,13 @@ class UniverseMap {
                 // Only draw systems that are within the visible area and graph boundaries
                 if (x >= padding.left && x <= width - padding.right &&
                     y >= padding.top && y <= height - padding.bottom) {
-                    
+
                     // Set color based on whether it's a starter system
                     ctx.fillStyle = system.starter ? '#4CAF50' : '#FF5252';
-                    
+
                     // Draw system point as a square (2x2 pixels)
                     const size = this.hoveredSystem === system ? 7 : 5;
-                    ctx.fillRect(x - size/2, y - size/2, size, size);
+                    ctx.fillRect(x - size / 2, y - size / 2, size, size);
 
                     // Draw system name if hovered
                     if (this.hoveredSystem === system) {
@@ -556,12 +562,12 @@ class UniverseMap {
                 // Only draw if within visible area and graph boundaries
                 if (pixelX >= padding.left && pixelX <= width - padding.right &&
                     pixelY >= padding.top && pixelY <= height - padding.bottom) {
-                    
+
                     // Draw journey point
                     ctx.fillStyle = this.getColorFromDate(date);
-                    const isHovered = this.hoveredJourneyPoint && 
-                                    this.hoveredJourneyPoint.x === x && 
-                                    this.hoveredJourneyPoint.y === y;
+                    const isHovered = this.hoveredJourneyPoint &&
+                        this.hoveredJourneyPoint.x === x &&
+                        this.hoveredJourneyPoint.y === y;
                     const size = isHovered ? 7 : 4;
                     ctx.beginPath();
                     ctx.arc(pixelX, pixelY, size, 0, Math.PI * 2);
@@ -584,10 +590,10 @@ class UniverseMap {
                         const textWidth = ctx.measureText(formattedDate).width;
                         const tooltipX = pixelX + 10;
                         const tooltipY = pixelY - 10;
-                        
+
                         ctx.fillStyle = 'rgba(35, 40, 58, 0.9)';
                         ctx.fillRect(tooltipX - 5, tooltipY - 20, textWidth + 10, 25);
-                        
+
                         // Draw tooltip text
                         ctx.fillStyle = '#e6eaf3';
                         ctx.textAlign = 'left';
@@ -599,11 +605,11 @@ class UniverseMap {
 
         // Draw space station ellipses
         if (this.showSpaceStations) {
-                    this.ctx.save();
-                    this.ctx.beginPath();
+            this.ctx.save();
+            this.ctx.beginPath();
             // Define a clipping region to the graph area
-                    this.ctx.rect(padding.left, padding.top, graphWidth, graphHeight);
-                    this.ctx.clip();
+            this.ctx.rect(padding.left, padding.top, graphWidth, graphHeight);
+            this.ctx.clip();
 
             // For each space station, draw its range circle and then its marker
             for (let idx = 0; idx < this.squadronSpaceStations.length; idx++) {
@@ -635,7 +641,7 @@ class UniverseMap {
                 this.ctx.shadowBlur = 8;
                 this.ctx.fill();
                 this.ctx.restore();
-                
+
                 // Draw marker border
                 this.ctx.save();
                 this.ctx.beginPath();
@@ -660,17 +666,17 @@ class UniverseMap {
             for (const station of this.enemyStations) {
                 const px = toPixelX(station.x);
                 const py = toPixelY(station.y);
-                
+
                 // Only draw if within visible area and graph boundaries
                 if (px >= padding.left && px <= width - padding.right &&
                     py >= padding.top && py <= height - padding.bottom) {
-                    
+
                     // Draw dark blue circle for enemy station with white contour
                     this.ctx.beginPath();
                     this.ctx.arc(px, py, 3, 0, Math.PI * 2);
                     this.ctx.fillStyle = '#1e3a8a'; // Dark blue color
                     this.ctx.fill();
-                    
+
                     // Draw white contour
                     this.ctx.beginPath();
                     this.ctx.arc(px, py, 3, 0, Math.PI * 2);
@@ -680,6 +686,14 @@ class UniverseMap {
                 }
             }
             this.ctx.restore(); // remove clipping
+            this.ctx.restore(); // remove clipping
+        }
+
+        // Draw dungeons if showDungeons is true
+        if (this.showDungeons && this.dungeons.length > 0) {
+            for (const dungeon of this.dungeons) {
+                this.drawPin(dungeon, this.dungeonIcon);
+            }
         }
 
         // Draw player and voyager positions if available and showCurrentPosition is true
@@ -697,16 +711,16 @@ class UniverseMap {
             const ss = this.hoveredSpaceStation;
             const px = toPixelX(ss.x);
             const py = toPixelY(ss.y);
-            
+
             // Find the index of this space station to get its color
-            const ssIndex = this.squadronSpaceStations.findIndex(station => 
+            const ssIndex = this.squadronSpaceStations.findIndex(station =>
                 station.x === ss.x && station.y === ss.y && station.name === ss.name
             );
-            
+
             // Get the color for this space station
             const rgb = baseColors[ssIndex % baseColors.length];
             const borderColor = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
-            
+
             // Tooltip content
             const lines = [
                 `${ss.name}`,
@@ -744,7 +758,7 @@ class UniverseMap {
             const station = this.hoveredEnemyStation;
             const px = toPixelX(station.x);
             const py = toPixelY(station.y);
-            
+
             // Tooltip content
             const lines = [
                 `Enemy Station: ${station.name}`,
@@ -756,7 +770,7 @@ class UniverseMap {
             const tooltipX = px + 12;
             const tooltipY = py - 10;
             const tooltipHeight = lines.length * 18 + 10;
-            
+
             // Draw background
             this.ctx.save();
             this.ctx.fillStyle = 'rgba(35, 40, 58, 0.95)';
@@ -766,7 +780,50 @@ class UniverseMap {
             this.ctx.roundRect(tooltipX - 7, tooltipY - 22, textWidth + 18, tooltipHeight, 7);
             this.ctx.fill();
             this.ctx.stroke();
-            
+
+            // Draw text
+            this.ctx.fillStyle = '#e6eaf3';
+            for (let i = 0; i < lines.length; i++) {
+                this.ctx.fillText(lines[i], tooltipX, tooltipY + i * 18);
+            }
+            this.ctx.restore();
+        }
+
+        // Draw Dungeon tooltip
+        if (this.hoveredDungeon) {
+            const dungeon = this.hoveredDungeon;
+            const px = toPixelX(dungeon.x);
+            const py = toPixelY(dungeon.y);
+
+            const lines = [
+                `Dungeon: ${dungeon.name}`,
+                `Type: ${dungeon.type}`,
+                `System: ${dungeon.system.name} (${dungeon.x}, ${dungeon.y})`
+            ];
+
+            // Create date formatters
+            const formatDate = (ts) => new Date(ts * 1000).toLocaleString();
+
+            if (dungeon.createdAt) lines.push(`Created: ${formatDate(dungeon.createdAt)}`);
+            if (dungeon.resetsAt) lines.push(`Resets: ${formatDate(dungeon.resetsAt)}`);
+
+
+            this.ctx.font = '13px Arial';
+            const textWidth = Math.max(...lines.map(line => this.ctx.measureText(line).width));
+            const tooltipX = px + 12;
+            const tooltipY = py - 10;
+            const tooltipHeight = lines.length * 18 + 10;
+
+            // Draw background
+            this.ctx.save();
+            this.ctx.fillStyle = 'rgba(35, 40, 58, 0.95)';
+            this.ctx.strokeStyle = '#a3367fff';
+            this.ctx.lineWidth = 2;
+            this.ctx.beginPath();
+            this.ctx.roundRect(tooltipX - 7, tooltipY - 22, textWidth + 18, tooltipHeight, 7);
+            this.ctx.fill();
+            this.ctx.stroke();
+
             // Draw text
             this.ctx.fillStyle = '#e6eaf3';
             for (let i = 0; i < lines.length; i++) {
@@ -783,18 +840,20 @@ class UniverseMap {
         const padding = this.getPadding();
         const graphWidth = this.canvas.width - padding.left - padding.right;
         const graphHeight = this.canvas.height - padding.top - padding.bottom;
+        const toPixelX = (x) => padding.left + ((x - this.offsetX) / 2000) * graphWidth * this.zoomLevel;
+        const toPixelY = (y) => this.canvas.height - padding.bottom - ((y - this.offsetY) / 2000) * graphHeight * this.zoomLevel;
 
         if (this.isDragging) {
             // Calculate the movement in coordinate space
             const dx = (x - this.lastX) / (graphWidth * this.zoomLevel) * 2000;
             const dy = (y - this.lastY) / (graphHeight * this.zoomLevel) * 2000;
-            
+
             // Update offset (negative because we want to move the map in the opposite direction of the drag)
             this.offsetX -= dx;
             this.offsetY += dy; // Positive because y-axis is inverted
 
             // Ensure the offset stays within bounds
-            const maxOffset = 2000 * (1 - 1/this.zoomLevel);
+            const maxOffset = 2000 * (1 - 1 / this.zoomLevel);
             this.offsetX = Math.max(0, Math.min(maxOffset, this.offsetX));
             this.offsetY = Math.max(0, Math.min(maxOffset, this.offsetY));
 
@@ -802,6 +861,33 @@ class UniverseMap {
             this.lastY = y;
             this.draw();
             return;
+        }
+
+        this.hoveredDungeon = null;
+        if (this.showDungeons && this.dungeons.length > 0) {
+            for (const dungeon of this.dungeons) {
+                const dx = toPixelX(dungeon.x);
+                const dy = toPixelY(dungeon.y);
+
+                // Check distance to pin tip (original check)
+                const distanceTip = Math.sqrt(Math.pow(x - dx, 2) + Math.pow(y - dy, 2));
+
+                // Check distance to pin head (center of the circle/icon)
+                // In drawPin: circleCenterY = y - triangleHeight (15) - circleRadius (14) = y - 29
+                const headY = dy - 29;
+                const distanceHead = Math.sqrt(Math.pow(x - dx, 2) + Math.pow(y - headY, 2));
+
+                // Use slightly larger radius (20) for head to make hovering easier
+                if (distanceTip < 15 || distanceHead < 20) {
+                    this.hoveredDungeon = dungeon;
+                    this.hoveredSystem = null;
+                    this.hoveredJourneyPoint = null;
+                    this.hoveredSpaceStation = null;
+                    this.hoveredEnemyStation = null;
+                    this.draw(); // Redraw to show tooltip
+                    return;
+                }
+            }
         }
 
         // Check if mouse is over any journey point first
@@ -816,9 +902,9 @@ class UniverseMap {
                 const [coordX, coordY] = coords.split(',').map(Number);
                 const pixelX = padding.left + ((coordX - this.offsetX) / 2000) * graphWidth * this.zoomLevel;
                 const pixelY = this.canvas.height - padding.bottom - ((coordY - this.offsetY) / 2000) * graphHeight * this.zoomLevel;
-                
+
                 const distance = Math.sqrt(Math.pow(x - pixelX, 2) + Math.pow(y - pixelY, 2));
-                
+
                 if (distance < 10) {
                     this.hoveredJourneyPoint = { x: coordX, y: coordY, date: date };
                     this.hoveredSystem = null;
@@ -826,7 +912,7 @@ class UniverseMap {
                     break;
                 }
             }
-            
+
             if (!foundJourneyPoint) {
                 this.hoveredJourneyPoint = null;
             }
@@ -916,12 +1002,12 @@ class UniverseMap {
         const rect = this.canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
-        
+
         // Calculate the coordinate under the mouse before zoom
         const padding = this.getPadding();
         const graphWidth = this.canvas.width - padding.left - padding.right;
         const graphHeight = this.canvas.height - padding.top - padding.bottom;
-        
+
         const coordX = this.offsetX + ((mouseX - padding.left) / (graphWidth * this.zoomLevel)) * 2000;
         const coordY = this.offsetY + ((this.canvas.height - mouseY - padding.bottom) / (graphHeight * this.zoomLevel)) * 2000;
 
@@ -929,7 +1015,7 @@ class UniverseMap {
         const delta = e.deltaY;
         const zoomFactor = delta > 0 ? 0.9 : 1.1;
         const newZoomLevel = this.zoomLevel * zoomFactor;
-        
+
         // Prevent zooming out beyond initial view
         if (newZoomLevel < 1) {
             this.zoomLevel = 1;
@@ -938,19 +1024,19 @@ class UniverseMap {
             this.draw();
             return;
         }
-        
+
         // Limit maximum zoom (increased by 100%)
         this.zoomLevel = Math.min(100, newZoomLevel);
 
         // Calculate new offset to keep the point under the mouse in the same position
         const newCoordX = this.offsetX + ((mouseX - padding.left) / (graphWidth * this.zoomLevel)) * 2000;
         const newCoordY = this.offsetY + ((this.canvas.height - mouseY - padding.bottom) / (graphHeight * this.zoomLevel)) * 2000;
-        
+
         this.offsetX += (coordX - newCoordX);
         this.offsetY += (coordY - newCoordY);
 
         // Ensure the offset stays within bounds
-        const maxOffset = 2000 * (1 - 1/this.zoomLevel);
+        const maxOffset = 2000 * (1 - 1 / this.zoomLevel);
         this.offsetX = Math.max(0, Math.min(maxOffset, this.offsetX));
         this.offsetY = Math.max(0, Math.min(maxOffset, this.offsetY));
 
@@ -969,14 +1055,14 @@ class UniverseMap {
         } else if (e.touches.length === 1) {
             const currentTime = Date.now();
             const timeDiff = currentTime - this.lastTouchTime;
-            
+
             // Check for double tap (within 300ms)
             if (timeDiff < 300 && timeDiff > 0) {
                 // Double tap detected - zoom in/out
                 const rect = this.canvas.getBoundingClientRect();
                 const x = e.touches[0].clientX - rect.left;
                 const y = e.touches[0].clientY - rect.top;
-                
+
                 if (this.zoomLevel > 1) {
                     // Zoom out to fit all
                     this.zoomLevel = 1;
@@ -985,30 +1071,30 @@ class UniverseMap {
                 } else {
                     // Zoom in to 2x
                     this.zoomLevel = 2;
-                    
+
                     // Calculate the coordinate under the tap point
                     const padding = this.getPadding();
                     const graphWidth = this.canvas.width - padding.left - padding.right;
                     const graphHeight = this.canvas.height - padding.top - padding.bottom;
-                    
+
                     const coordX = this.offsetX + ((x - padding.left) / (graphWidth * 1)) * 2000;
                     const coordY = this.offsetY + ((this.canvas.height - y - padding.bottom) / (graphHeight * 1)) * 2000;
-                    
+
                     // Center the view on the tapped point
                     this.offsetX = coordX - (graphWidth * this.zoomLevel / 2 / graphWidth) * 2000;
                     this.offsetY = coordY - (graphHeight * this.zoomLevel / 2 / graphHeight) * 2000;
-                    
+
                     // Ensure the offset stays within bounds
-                    const maxOffset = 2000 * (1 - 1/this.zoomLevel);
+                    const maxOffset = 2000 * (1 - 1 / this.zoomLevel);
                     this.offsetX = Math.max(0, Math.min(maxOffset, this.offsetX));
                     this.offsetY = Math.max(0, Math.min(maxOffset, this.offsetY));
                 }
-                
+
                 this.draw();
                 this.lastTouchTime = 0; // Reset to prevent triple tap
                 return;
             }
-            
+
             this.lastTouchTime = currentTime;
             this.isDragging = true;
             this.lastX = e.touches[0].clientX - this.canvas.getBoundingClientRect().left;
@@ -1018,12 +1104,12 @@ class UniverseMap {
 
     handleTouchMove(e) {
         e.preventDefault(); // Prevent default touch behavior
-        
+
         if (this.isPinching && e.touches.length === 2) {
             const currentDistance = this.getDistance(e.touches[0], e.touches[1]);
             const zoomFactor = currentDistance / this.touchStartDistance;
             const newZoomLevel = this.touchStartZoomLevel * zoomFactor;
-            
+
             // Limit zoom levels
             if (newZoomLevel < 1) {
                 this.zoomLevel = 1;
@@ -1031,53 +1117,53 @@ class UniverseMap {
                 this.offsetY = 0;
             } else {
                 this.zoomLevel = Math.min(100, newZoomLevel);
-                
+
                 // Calculate the center point between the two touches
                 const currentCenterX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
                 const currentCenterY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-                
+
                 // Calculate the coordinate under the center point before zoom
                 const rect = this.canvas.getBoundingClientRect();
                 const padding = this.getPadding();
                 const graphWidth = this.canvas.width - padding.left - padding.right;
                 const graphHeight = this.canvas.height - padding.top - padding.bottom;
-                
+
                 const coordX = this.touchStartOffsetX + ((currentCenterX - rect.left - padding.left) / (graphWidth * this.touchStartZoomLevel)) * 2000;
                 const coordY = this.touchStartOffsetY + ((this.canvas.height - (currentCenterY - rect.top) - padding.bottom) / (graphHeight * this.touchStartZoomLevel)) * 2000;
-                
+
                 // Calculate new offset to keep the point under the center in the same position
                 const newCoordX = this.offsetX + ((currentCenterX - rect.left - padding.left) / (graphWidth * this.zoomLevel)) * 2000;
                 const newCoordY = this.offsetY + ((this.canvas.height - (currentCenterY - rect.top) - padding.bottom) / (graphHeight * this.zoomLevel)) * 2000;
-                
+
                 this.offsetX += (coordX - newCoordX);
                 this.offsetY += (coordY - newCoordY);
-                
+
                 // Ensure the offset stays within bounds
-                const maxOffset = 2000 * (1 - 1/this.zoomLevel);
+                const maxOffset = 2000 * (1 - 1 / this.zoomLevel);
                 this.offsetX = Math.max(0, Math.min(maxOffset, this.offsetX));
                 this.offsetY = Math.max(0, Math.min(maxOffset, this.offsetY));
             }
-            
+
             this.draw();
         } else if (this.isDragging && e.touches.length === 1) {
             const rect = this.canvas.getBoundingClientRect();
             const x = e.touches[0].clientX - rect.left;
             const y = e.touches[0].clientY - rect.top;
-            
+
             // Calculate the movement in coordinate space
             const padding = this.getPadding();
             const graphWidth = this.canvas.width - padding.left - padding.right;
             const graphHeight = this.canvas.height - padding.top - padding.bottom;
-            
+
             const dx = (x - this.lastX) / (graphWidth * this.zoomLevel) * 2000;
             const dy = (y - this.lastY) / (graphHeight * this.zoomLevel) * 2000;
-            
+
             // Update offset (negative because we want to move the map in the opposite direction of the drag)
             this.offsetX -= dx;
             this.offsetY += dy; // Positive because y-axis is inverted
 
             // Ensure the offset stays within bounds
-            const maxOffset = 2000 * (1 - 1/this.zoomLevel);
+            const maxOffset = 2000 * (1 - 1 / this.zoomLevel);
             this.offsetX = Math.max(0, Math.min(maxOffset, this.offsetX));
             this.offsetY = Math.max(0, Math.min(maxOffset, this.offsetY));
 
@@ -1097,7 +1183,7 @@ class UniverseMap {
         const dy = touch1.clientY - touch2.clientY;
         return Math.sqrt(dx * dx + dy * dy);
     }
-    
+
     getPadding() {
         // Adjust padding based on screen size for better mobile experience
         const isMobile = this.canvas.width < 768;
@@ -1134,7 +1220,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add button to load systems
     const loadButton = document.getElementById('loadSystemsBtn');
     const apiKeyInput = document.getElementById('systems_api_key');
-    
+
     // Load saved API key from localStorage
     if (apiKeyInput) {
         const savedApiKey = localStorage.getItem('systems_api_key');
@@ -1142,7 +1228,7 @@ document.addEventListener('DOMContentLoaded', () => {
             apiKeyInput.value = savedApiKey;
         }
     }
-    
+
     if (loadButton && apiKeyInput) {
         loadButton.addEventListener('click', async () => {
             const apiKey = apiKeyInput.value.trim();
@@ -1210,7 +1296,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             y: ss.system.coordinate_y
                         }));
                     }
-                    
+
                     // Handle voyager data
                     if (userData.data && userData.data.voyager &&
                         typeof userData.data.voyager.current_x === 'number' &&
@@ -1222,7 +1308,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         universeMap.voyagerPosition = null;
                     }
-                    
+
                     // Load stations data and filter enemy stations
                     const stationsResponse = await fetch('https://api.stellarodyssey.app/api/public/stations', {
                         headers: {
@@ -1230,24 +1316,43 @@ document.addEventListener('DOMContentLoaded', () => {
                             'sodyssey-api-key': apiKey
                         }
                     });
-                    
+
                     if (stationsResponse.ok) {
                         const stationsData = await stationsResponse.json();
                         const userSquadron = userData.data.squadron?.name;
-                        
+
                         // Filter out user's own squadron stations, keep only enemy stations
                         if (stationsData.stations && userSquadron) {
-                            universeMap.enemyStations = stationsData.stations.filter(station => 
+                            universeMap.enemyStations = stationsData.stations.filter(station =>
                                 station.squadron !== userSquadron
                             );
                         } else {
                             universeMap.enemyStations = [];
                         }
                     }
-                    
+
+                    // Fetch dungeons
+                    try {
+                        const dungeonsResponse = await fetch('https://api.stellarodyssey.app/api/public/dungeons', {
+                            headers: {
+                                'Accept': 'application/json',
+                                'sodyssey-api-key': apiKey
+                            }
+                        });
+
+                        if (dungeonsResponse.ok) {
+                            const dungeonsData = await dungeonsResponse.json();
+                            universeMap.loadDungeons(dungeonsData);
+                        } else {
+                            console.warn(`Failed to load dungeons: ${dungeonsResponse.status}`);
+                        }
+                    } catch (error) {
+                        console.warn("Error loading dungeons:", error);
+                    }
+
                     universeMap.draw();
                 }
-                
+
                 loadButton.disabled = false;
                 loadButton.textContent = 'Load Systems';
             } catch (error) {
@@ -1271,5 +1376,5 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('universe-map-tab').classList.contains('active')) {
         initializeMap();
     }
-}); 
- 
+});
+
