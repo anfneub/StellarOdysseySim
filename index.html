@@ -428,6 +428,57 @@
             margin-bottom: 0.2em;
             /* Match .form-group label */
         }
+
+        /* April Fools Prank Modals */
+        #prankBackdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 999998;
+        }
+
+        .prank-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #23283a;
+            border: 1px solid #2c3242;
+            border-radius: 8px;
+            padding: 2em;
+            z-index: 999999;
+            color: #e6eaf3;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            width: 80%;
+            max-width: 550px;
+        }
+
+        .prank-modal p {
+            font-size: 1.1em;
+            line-height: 1.5;
+            margin-bottom: 1.5em;
+        }
+
+        .prank-modal button {
+            padding: 0.5em 1.5em;
+            font-size: 1em;
+            background: #36405a;
+            color: #e6eaf3;
+            border: 1px solid #4a5472;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .prank-modal button:hover {
+            background: #4a5472;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script type="module">
@@ -472,6 +523,56 @@
 
             // Declare totalStatPool for use after API import
             let totalStatPool = null;
+            let currentApiUsername = '';
+
+            // April Fools Logic
+            const checkAprilFools = () => {
+                const now = new Date();
+                // Check if it's April 1st in UTC
+                //if (true) {
+                if (now.getUTCMonth() === 3 && now.getUTCDate() === 1) {
+                    const savedSettingsStr = localStorage.getItem('stellarOdysseySettings');
+                    let playerName = '';
+                    if (savedSettingsStr) {
+                        try {
+                            const parsed = JSON.parse(savedSettingsStr);
+                            if (parsed.api_username) {
+                                playerName = parsed.api_username;
+                            }
+                            // Sometimes the user might have their api username saved
+                            if (parsed.api_key && parsed.api_key.includes('-')) {
+                                // this is a leap, but without an explicit name, we check if they might have
+                                // it stored somewhere else or if we can pull it from the DOM early
+                            }
+                        } catch (e) { }
+                    }
+
+                    // Fallback to checking other common keys if not in settings or DOM
+                    if (!playerName) playerName = localStorage.getItem('username') || localStorage.getItem('player') || localStorage.getItem('playerName') || '';
+
+                    const greeting = playerName ? `Hello ${playerName}` : 'Hello';
+                    document.getElementById('prankText1').innerHTML = `${greeting},<br><br>
+                    I need just a moment of your attention.<br><br>
+                    Please understand that maintaining this Simulator and Optimizer requires a significant amount of effort:<br>
+                    I have to read the patch notes, update the logic, fix bugs, and pester Hein to give me all the missing details.<br><br>
+                    After reviewing recent activity, your username has been flagged for <b>heavy usage</b> and consequently your access has been <b>suspended</b>.<br><br>
+                    To restore full access, please send <b>100 Stellar Tokens to anfneub</b>.<br>
+                    Thank you for supporting essential infrastructure.`;
+                    document.getElementById('prankBackdrop').style.display = 'block';
+                    document.getElementById('prankModal1').style.display = 'block';
+                }
+            };
+            checkAprilFools();
+
+            document.getElementById('prankBtn1').addEventListener('click', () => {
+                document.getElementById('prankModal1').style.display = 'none';
+                document.getElementById('prankModal2').style.display = 'block';
+            });
+
+            document.getElementById('prankBtn2').addEventListener('click', () => {
+                document.getElementById('prankModal2').style.display = 'none';
+                document.getElementById('prankBackdrop').style.display = 'none';
+            });
 
             // Function to save all settings to localStorage
             function saveSettings() {
@@ -516,7 +617,8 @@
                     optimizer_htk: document.getElementById('optimizer_htk').value,
                     optimizer_htd: document.getElementById('optimizer_htd').value,
                     // API key
-                    api_key: form.api_key?.value || ''
+                    api_key: form.api_key?.value || '',
+                    api_username: currentApiUsername
                 };
                 localStorage.setItem('stellarOdysseySettings', JSON.stringify(settings));
             }
@@ -525,6 +627,7 @@
             const savedSettings = localStorage.getItem('stellarOdysseySettings');
             if (savedSettings) {
                 const settings = JSON.parse(savedSettings);
+                if (settings.api_username) currentApiUsername = settings.api_username;
                 Object.entries(settings).forEach(([key, value]) => {
                     if (key === 'clone_modifiers') {
                         cloneModifiers = value;
@@ -1277,6 +1380,7 @@
 
             function updateFormWithUserData(userData, stationsData = null) {
                 const data = userData.data;
+                currentApiUsername = data.username || '';
 
                 // Update form fields with API data
                 if (data.stats) {
@@ -2143,7 +2247,7 @@
                             <label
                                 style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
                                 <input type="checkbox" id="show_public_systems" style="margin: 0;">
-                                    Show public systems
+                                Show public systems
                             </label>
                             <label
                                 style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
@@ -2417,6 +2521,18 @@
         </div>
     </div>
     <!-- End PvP Tab -->
+
+    <!-- April Fools Modals -->
+    <div id="prankBackdrop"></div>
+    <div id="prankModal1" class="prank-modal">
+        <p id="prankText1"></p>
+        <button id="prankBtn1">I understand</button>
+    </div>
+    <div id="prankModal2" class="prank-modal">
+        <p>April fools 😛 <br><br>It is free and always will be. <br>Donations are always welcome, though.<br><br>Happy
+            playing!</p>
+        <button id="prankBtn2">OK</button>
+    </div>
 
     <!-- Tab bar -->
     <div class="tab-container">
