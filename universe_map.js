@@ -1292,7 +1292,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const journalData = await journalResponse.json();
                 if (journalData.fullJournal && journalData.fullJournal.length > 0) {
-                    universeMap.setPlayerPosition(journalData.fullJournal[0]);
+                    // universeMap.setPlayerPosition(journalData.fullJournal[0]);
                     universeMap.setJournalData(journalData);
                 }
 
@@ -1311,6 +1311,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             x: ss.system.coordinate_x,
                             y: ss.system.coordinate_y
                         }));
+                    }
+
+                    // Player position
+                    if (userData.data && userData.data.currentSystem) {
+                        coord_x = userData.data.currentSystem.coordinate_x;
+                        coord_y = userData.data.currentSystem.coordinate_y;
+                        universeMap.setPlayerPosition({ x: coord_x, y: coord_y });
                     }
 
                     // Handle voyager data
