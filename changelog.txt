@@ -1,3 +1,6 @@
+2026-04-02
+- Added closest space station in Dungeon tooltip
+
 2026-03-19
 - Some players have reached values so high that the optimizer was thrown off and would not return any result. This has been fixed now, until someone breaks it again.
 

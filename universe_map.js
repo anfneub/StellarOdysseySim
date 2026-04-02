@@ -807,6 +807,22 @@ class UniverseMap {
             if (dungeon.createdAt) lines.push(`Created: ${formatDate(dungeon.createdAt)}`);
             if (dungeon.resetsAt) lines.push(`Resets: ${formatDate(dungeon.resetsAt)}`);
 
+            if (this.squadronSpaceStations && this.squadronSpaceStations.length > 0) {
+                let closestStation = null;
+                let minDistance = Infinity;
+
+                for (const station of this.squadronSpaceStations) {
+                    const distance = Math.sqrt(Math.pow(dungeon.x - station.x, 2) + Math.pow(dungeon.y - station.y, 2));
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestStation = station;
+                    }
+                }
+
+                if (closestStation) {
+                    lines.push(`Closest Station: ${closestStation.name} (${minDistance.toFixed(2)} ly)`);
+                }
+            }
 
             this.ctx.font = '13px Arial';
             const textWidth = Math.max(...lines.map(line => this.ctx.measureText(line).width));
