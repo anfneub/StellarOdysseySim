@@ -1260,19 +1260,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 loadButton.disabled = true;
                 loadButton.textContent = 'Loading...';
 
+                // Initialize global cache if it doesn't already exist
+                window.runesDataCache = window.runesDataCache || { systems: null, journal: null, user: null };
+
                 // Load systems
-                const systemsResponse = await fetch('https://api.stellarodyssey.app/api/public/systems', {
-                    headers: {
-                        'Accept': 'application/json',
-                        'sodyssey-api-key': apiKey
+                let systemsData;
+                if (window.runesDataCache.systems) {
+                    systemsData = window.runesDataCache.systems;
+                } else {
+                    const systemsResponse = await fetch('https://api.stellarodyssey.app/api/public/systems', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'sodyssey-api-key': apiKey
+                        }
+                    });
+
+                    if (!systemsResponse.ok) {
+                        throw new Error(`Server responded with status ${systemsResponse.status}`);
                     }
-                });
 
-                if (!systemsResponse.ok) {
-                    throw new Error(`Server responded with status ${systemsResponse.status}`);
+                    systemsData = await systemsResponse.json();
+                    window.runesDataCache.systems = systemsData;
                 }
-
-                const systemsData = await systemsResponse.json();
+                
                 universeMap.loadSystems(systemsData);
 
                 // Add a 1 second delay between requests
