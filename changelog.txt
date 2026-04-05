@@ -1,3 +1,6 @@
+2026-04-05
+- Added desktop notifications for when the runes timer expires
+
 2026-04-03
 - INTRODUCING: Rune path optimizer. Optimal path to visit the closest special system to maximize your chance to find runes.
 
