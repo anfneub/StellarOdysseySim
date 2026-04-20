@@ -30,6 +30,10 @@ class UniverseMap {
         this.dungeonIcon.src = 'icons/dungeon.png';
         this.dungeonIcon.onload = () => this.draw();
 
+        this.runesIcon = new Image();
+        this.runesIcon.src = 'icons/scroll.png';
+        this.runesIcon.onload = () => this.draw();
+
         this.userIcon = new Image();
         this.userIcon.src = 'icons/user.png';
         this.userIcon.onload = () => this.draw();
@@ -58,9 +62,11 @@ class UniverseMap {
         this.showEnemyStations = localStorage.getItem('showEnemyStations') === 'true';
         this.showEnemyStations = localStorage.getItem('showEnemyStations') === 'true';
         this.showDungeons = localStorage.getItem('showDungeons') === null ? true : localStorage.getItem('showDungeons') === 'true';
+        this.showRunes = localStorage.getItem('showRunes') === null ? true : localStorage.getItem('showRunes') === 'true';
         this.squadronSpaceStations = [];
         this.enemyStations = [];
         this.dungeons = [];
+        this.runes = [];
 
         // Space station coordinates (hardcoded)
         // this.spaceStations = [];
@@ -109,6 +115,16 @@ class UniverseMap {
             showDungeonsCheckbox.addEventListener('change', (e) => {
                 this.showDungeons = e.target.checked;
                 localStorage.setItem('showDungeons', this.showDungeons);
+                this.draw();
+            });
+        }
+
+        const showRunesCheckbox = document.getElementById('show_runes');
+        if (showRunesCheckbox) {
+            showRunesCheckbox.checked = this.showRunes;
+            showRunesCheckbox.addEventListener('change', (e) => {
+                this.showRunes = e.target.checked;
+                localStorage.setItem('showRunes', this.showRunes);
                 this.draw();
             });
         }
@@ -200,6 +216,21 @@ class UniverseMap {
                 x: d.system.coordinate_x,
                 y: d.system.coordinate_y
             }));
+            this.draw();
+        }
+    }
+
+    loadRunes(data) {
+        if (data.runeSystems && Array.isArray(data.runeSystems)) {
+            this.runes = data.runeSystems.map(r => ({
+                ...r,
+                x: r.coordinate_x,
+                y: r.coordinate_y
+            }));
+            const runesCountElement = document.getElementById('runesCount');
+            if (runesCountElement) {
+                runesCountElement.textContent = `There are currently ${this.runes.length} active runes`;
+            }
             this.draw();
         }
     }
@@ -696,6 +727,13 @@ class UniverseMap {
             }
         }
 
+        // Draw runes if showRunes is true
+        if (this.showRunes && this.runes.length > 0) {
+            for (const rune of this.runes) {
+                this.drawPin(rune, this.runesIcon);
+            }
+        }
+
         // Draw player and voyager positions if available and showCurrentPosition is true
         if (this.showCurrentPosition) {
             if (this.playerPosition) {
@@ -847,6 +885,45 @@ class UniverseMap {
             }
             this.ctx.restore();
         }
+
+        // Draw Rune tooltip
+        if (this.hoveredRune) {
+            const rune = this.hoveredRune;
+            const px = toPixelX(rune.x);
+            const py = toPixelY(rune.y);
+
+            const lines = [
+                `Rune: ${rune.rune_name}`,
+                `System: ${rune.name} (${rune.x}, ${rune.y})`,
+                `Star: ${rune.star}`,
+            ];
+
+            const formatDate = (ts) => new Date(ts * 1000).toLocaleString();
+            if (rune.expires_at) lines.push(`Expires: ${formatDate(rune.expires_at)}`);
+
+            this.ctx.font = '13px Arial';
+            const textWidth = Math.max(...lines.map(line => this.ctx.measureText(line).width));
+            const tooltipX = px + 12;
+            const tooltipY = py - 10;
+            const tooltipHeight = lines.length * 18 + 10;
+
+            // Draw background
+            this.ctx.save();
+            this.ctx.fillStyle = 'rgba(35, 40, 58, 0.95)';
+            this.ctx.strokeStyle = '#f39c12'; // Orange border
+            this.ctx.lineWidth = 2;
+            this.ctx.beginPath();
+            this.ctx.roundRect(tooltipX - 7, tooltipY - 22, textWidth + 18, tooltipHeight, 7);
+            this.ctx.fill();
+            this.ctx.stroke();
+
+            // Draw text
+            this.ctx.fillStyle = '#e6eaf3';
+            for (let i = 0; i < lines.length; i++) {
+                this.ctx.fillText(lines[i], tooltipX, tooltipY + i * 18);
+            }
+            this.ctx.restore();
+        }
     }
 
     handleMouseMove(e) {
@@ -879,6 +956,28 @@ class UniverseMap {
             return;
         }
 
+        this.hoveredRune = null;
+        if (this.showRunes && this.runes.length > 0) {
+            for (const rune of this.runes) {
+                const dx = toPixelX(rune.x);
+                const dy = toPixelY(rune.y);
+                const distanceTip = Math.sqrt(Math.pow(x - dx, 2) + Math.pow(y - dy, 2));
+                const headY = dy - 29;
+                const distanceHead = Math.sqrt(Math.pow(x - dx, 2) + Math.pow(y - headY, 2));
+
+                if (distanceTip < 15 || distanceHead < 20) {
+                    this.hoveredRune = rune;
+                    this.hoveredDungeon = null;
+                    this.hoveredSystem = null;
+                    this.hoveredJourneyPoint = null;
+                    this.hoveredSpaceStation = null;
+                    this.hoveredEnemyStation = null;
+                    this.draw();
+                    return;
+                }
+            }
+        }
+
         this.hoveredDungeon = null;
         if (this.showDungeons && this.dungeons.length > 0) {
             for (const dungeon of this.dungeons) {
@@ -896,6 +995,7 @@ class UniverseMap {
                 // Use slightly larger radius (20) for head to make hovering easier
                 if (distanceTip < 15 || distanceHead < 20) {
                     this.hoveredDungeon = dungeon;
+                    this.hoveredRune = null;
                     this.hoveredSystem = null;
                     this.hoveredJourneyPoint = null;
                     this.hoveredSpaceStation = null;
@@ -1381,6 +1481,25 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     } catch (error) {
                         console.warn("Error loading dungeons:", error);
+                    }
+
+                    // Fetch runes
+                    try {
+                        const runesResponse = await fetch('https://api.stellarodyssey.app/api/public/activerunes', {
+                            headers: {
+                                'Accept': 'application/json',
+                                'sodyssey-api-key': apiKey
+                            }
+                        });
+
+                        if (runesResponse.ok) {
+                            const runesData = await runesResponse.json();
+                            universeMap.loadRunes(runesData);
+                        } else {
+                            console.warn(`Failed to load runes: ${runesResponse.status}`);
+                        }
+                    } catch (error) {
+                        console.warn("Error loading runes:", error);
                     }
 
                     universeMap.draw();

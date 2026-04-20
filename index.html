@@ -2245,6 +2245,8 @@
                         </div>
                         <div style="color: #e6eaf3; font-size: 0.9em; margin-bottom: 0.0em;" id="systemsCount">There are
                             currently 0 publicly discovered systems</div>
+                        <div style="color: #e6eaf3; font-size: 0.9em; margin-bottom: 0.0em;" id="runesCount">There are
+                            currently 0 active runes</div>
                         <div style="display: flex; flex-direction: column; gap: 0.5em;">
                             <label
                                 style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
@@ -2255,6 +2257,11 @@
                                 style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
                                 <input type="checkbox" id="show_dungeons" style="margin: 0;">
                                 Show dungeons
+                            </label>
+                            <label
+                                style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
+                                <input type="checkbox" id="show_runes" style="margin: 0;">
+                                Show available runes
                             </label>
                             <label
                                 style="display: flex; align-items: center; gap: 0.5em; color: #e6eaf3; cursor: pointer;">
@@ -2532,7 +2539,8 @@
             <!-- Top Explanation Card -->
             <div class="optimizer-block" style="width: 100%; min-width: 100%; height: auto; min-height: auto;">
                 <div class="block-label">Runes Path Optimizer</div>
-                <div style="color: #b0b6c6; font-size: 1.05em; margin-top: 1.5em; line-height: 0.8; margin-bottom: 1.0em;">
+                <div
+                    style="color: #b0b6c6; font-size: 1.05em; margin-top: 1.5em; line-height: 0.8; margin-bottom: 1.0em;">
                     <p style="margin-top: 0;">Runes are discovered by exploring special star systems that you have not
                         visited yet.</p>
                     <p>This interface calculates the optimal travel route across the closest special stars, minimizing
@@ -2588,13 +2596,14 @@
                     <div style="margin-top: 2em; display: flex; flex-direction: column; gap: 0.5em;">
                         <div style="color: #b0b6c6; font-size: 0.95em;">Timer</div>
                         <div style="display: flex; align-items: center; gap: 0.5em;">
-                            <input type="number" id="runesTimerMinutes" min="0" max="99" value="05" 
+                            <input type="number" id="runesTimerMinutes" min="0" max="99" value="05"
                                 style="width: 3.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; border-radius: 4px; padding: 0.4em; text-align: center; font-size: 1.05em;">
                             <span style="color: #e6eaf3; font-weight: bold; font-size: 1.2em;">:</span>
-                            <input type="number" id="runesTimerSeconds" min="0" max="59" value="00" 
+                            <input type="number" id="runesTimerSeconds" min="0" max="59" value="00"
                                 style="width: 3.5em; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; border-radius: 4px; padding: 0.4em; text-align: center; font-size: 1.05em;">
                         </div>
-                        <label style="display: flex; align-items: center; gap: 0.5em; cursor: pointer; color: #e6eaf3; font-size: 0.95em; margin-top: 0.5em;">
+                        <label
+                            style="display: flex; align-items: center; gap: 0.5em; cursor: pointer; color: #e6eaf3; font-size: 0.95em; margin-top: 0.5em;">
                             <input type="checkbox" id="runesTimerNotification" style="margin: 0;">
                             Send desktop notification
                         </label>
@@ -2614,7 +2623,9 @@
                 <div class="optimizer-block"
                     style="width: 250px; min-width: 250px; min-height: 200px; max-height: 200px; display: flex; flex-direction: column; height: 510px;">
                     <div class="block-label">Timer</div>
-                    <div id="runesActiveTimerDisplay" style="font-size: 3.5em; color: #4fa3ff; font-weight: bold; text-align: center; margin-top: auto; margin-bottom: auto; font-family: monospace;">05:00</div>
+                    <div id="runesActiveTimerDisplay"
+                        style="font-size: 3.5em; color: #4fa3ff; font-weight: bold; text-align: center; margin-top: auto; margin-bottom: auto; font-family: monospace;">
+                        05:00</div>
                 </div>
 
             </div>

@@ -1,3 +1,6 @@
+2026-04-20
+If any rune is currently available in a 4 hours window, it will be displayed on the universe map
+
 2026-04-05
 - Added desktop notifications for when the runes timer expires
 
