@@ -850,7 +850,7 @@ class UniverseMap {
                 let minDistance = Infinity;
 
                 for (const station of this.squadronSpaceStations) {
-                    const distance = Math.sqrt(Math.pow(dungeon.x - station.x, 2) + Math.pow(dungeon.y - station.y, 2));
+                    const distance = Math.sqrt(Math.pow(10.0 * (dungeon.x - station.x), 2) + Math.pow(10.0 * (dungeon.y - station.y), 2));
                     if (distance < minDistance) {
                         minDistance = distance;
                         closestStation = station;
@@ -1382,7 +1382,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     systemsData = await systemsResponse.json();
                     window.runesDataCache.systems = systemsData;
                 }
-                
+
                 universeMap.loadSystems(systemsData);
 
                 // Add a 1 second delay between requests
