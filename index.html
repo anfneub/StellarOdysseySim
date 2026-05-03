@@ -1727,6 +1727,7 @@
 <body>
     <div style="display: flex; align-items: center; gap: 1em; margin-bottom: 2.2em;">
         <div style="font-size: 1.7em; font-weight: 600; letter-spacing: 0.01em;">Stellar Odyssey Simulator and Optimizer
+            <span style="cursor: help; font-size: 0.9em;" title="Since patch 2.1.0, the simulator and optimizer have been deprecated. Please use the in-game simulator and optimizer instead. A new simulator is currently a work in progress and will be released in the future.">⚠️</span>
         </div>
     </div>
     <!-- Tab content sections -->
@@ -2122,6 +2123,10 @@
                 </div>
             </div>
         </form>
+    </div>
+
+    <div id="new-battling-tab" class="tab-content">
+        <h1 style="text-align: center; margin-top: 2em;">Work in progress, check back later</h1>
     </div>
 
     <div id="gathering-tab" class="tab-content">
@@ -2648,6 +2653,7 @@
     <!-- Tab bar -->
     <div class="tab-container">
         <div class="tab active" data-tab="battling-tab">Battling</div>
+        <div class="tab" data-tab="new-battling-tab">New Simulator</div>
         <div class="tab" data-tab="gathering-tab">Gathering</div>
         <div class="tab" data-tab="universe-map-tab">Universe Map</div>
         <div class="tab" data-tab="probabilities-tab">Probabilities</div>
@@ -2658,7 +2664,7 @@
     <footer>
         <span>Proudly made by anfneub</span>
         <span style="margin-left: 2.5em;" id="lastUpdated"></span>
-        <span style="margin-left: 2.5em;">Space Odyssey Version 1.9.2 2026-03-20</span>
+        <span style="margin-left: 2.5em;">Space Odyssey Version 2.1.0 2026-05-03</span>
         <span style="margin-left: 2.5em; cursor: pointer; color: #4fa3ff; text-decoration: underline;"
             id="changelogLink">Changelog</span>
     </footer>
@@ -2707,8 +2713,8 @@
         if (lastUpdated) {
             const now = new Date();
             const pad = n => n.toString().padStart(2, '0');
-            const dateStr = "2026-04-05";
-            const timeStr = "15:05";
+            const dateStr = "2026-05-03";
+            const timeStr = "19:04";
             lastUpdated.textContent = `Last updated: ${dateStr} ${timeStr}`;
         }
     </script>
