@@ -1,3 +1,6 @@
+2026-08-07
+- Laid the mechanics for steam API server import
+
 2026-05-03
 - Laid the foundations for the new simulator
 

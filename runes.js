@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 updateProgress(5);
                 // Check if data is already loaded in UniverseMap or local cache
-                window.runesDataCache = window.runesDataCache || { systems: null, journal: null, user: null };
+                window.runesDataCache = window.runesDataCache || { systems: null, journal: null, user: null, apiServer: null };
                 const map = window.UniverseMap && window.UniverseMap.getInstance ? window.UniverseMap.getInstance() : null;
 
                 // System Data
@@ -144,17 +144,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     window.runesDataCache.systems = systemsData;
                     updateProgress(35);
                 } else {
-                    const sysRes = await fetch('https://api.stellarodyssey.app/api/public/systems', {
+                    const sysRes = await fetchGameApi('/api/public/systems', {
                         headers: { 'Accept': 'application/json', 'sodyssey-api-key': apiKey }
                     });
                     if (!sysRes.ok) throw new Error(`Systems API error: ${sysRes.status}`);
                     systemsData = await sysRes.json();
                     window.runesDataCache.systems = systemsData;
+                    window.runesDataCache.apiServer = sysRes.apiServer;
                     updateProgress(35);
                 }
 
                 // Always refresh journal Data
-                const jourRes = await fetch('https://api.stellarodyssey.app/api/public/journal', {
+                const jourRes = await fetchGameApi('/api/public/journal', {
                     headers: { 'Accept': 'application/json', 'sodyssey-api-key': apiKey }
                 });
                 if (!jourRes.ok) throw new Error(`Journal API error: ${jourRes.status}`);
@@ -163,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 updateProgress(65);
                 
                 // Always refresh user Data
-                const userRes = await fetch('https://api.stellarodyssey.app/api/public/user', {
+                const userRes = await fetchGameApi('/api/public/user', {
                     headers: { 'Accept': 'application/json', 'sodyssey-api-key': apiKey }
                 });
                 if (!userRes.ok) throw new Error(`User API error: ${userRes.status}`);

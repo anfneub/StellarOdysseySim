@@ -15,6 +15,8 @@ class UniverseMap {
         this.isDragging = false;
         this.lastX = 0;
         this.lastY = 0;
+        this.mapSize = 2000;
+        this.gridStep = 250;
         this.zoomLevel = 1;
         this.zoomCenterX = 0;
         this.zoomCenterY = 0;
@@ -150,12 +152,22 @@ class UniverseMap {
         this._drawQueued = false;    // For throttling draw calls
     }
 
+    setMapSize(size) {
+        if (size === this.mapSize) return;
+        this.mapSize = size;
+        this.gridStep = size >= 5000 ? 1000 : 250;
+        this.zoomLevel = 1;
+        this.offsetX = 0;
+        this.offsetY = 0;
+        this.draw();
+    }
+
     getVisibleRange() {
         const padding = { left: 40, right: 140, top: 25, bottom: 25 };
         const graphWidth = this.canvas.width - padding.left - padding.right;
         const graphHeight = this.canvas.height - padding.top - padding.bottom;
-        const visibleWidth = 2000 / this.zoomLevel;
-        const visibleHeight = 2000 / this.zoomLevel;
+        const visibleWidth = this.mapSize / this.zoomLevel;
+        const visibleHeight = this.mapSize / this.zoomLevel;
         const left = this.offsetX;
         const top = this.offsetY;
         const right = left + visibleWidth;
@@ -282,8 +294,8 @@ class UniverseMap {
     }
 
     drawPin(position, icon) {
-        const toPixelX = (coordX) => this.getPadding().left + ((coordX - this.offsetX) / 2000) * (this.canvas.width - this.getPadding().left - this.getPadding().right) * this.zoomLevel;
-        const toPixelY = (coordY) => this.canvas.height - this.getPadding().bottom - ((coordY - this.offsetY) / 2000) * (this.canvas.height - this.getPadding().top - this.getPadding().bottom) * this.zoomLevel;
+        const toPixelX = (coordX) => this.getPadding().left + ((coordX - this.offsetX) / this.mapSize) * (this.canvas.width - this.getPadding().left - this.getPadding().right) * this.zoomLevel;
+        const toPixelY = (coordY) => this.canvas.height - this.getPadding().bottom - ((coordY - this.offsetY) / this.mapSize) * (this.canvas.height - this.getPadding().top - this.getPadding().bottom) * this.zoomLevel;
 
         const x = toPixelX(position.coordinate_x || position.x);
         const y = toPixelY(position.coordinate_y || position.y);
@@ -394,15 +406,15 @@ class UniverseMap {
         ctx.lineWidth = 1;
 
         // Calculate visible range based on zoom and offset
-        const visibleRange = 2000 / this.zoomLevel;
-        const startX = Math.max(0, Math.floor(this.offsetX / 250) * 250);
-        const endX = Math.min(2000, Math.ceil((this.offsetX + visibleRange) / 250) * 250);
-        const startY = Math.max(0, Math.floor(this.offsetY / 250) * 250);
-        const endY = Math.min(2000, Math.ceil((this.offsetY + visibleRange) / 250) * 250);
+        const visibleRange = this.mapSize / this.zoomLevel;
+        const startX = Math.max(0, Math.floor(this.offsetX / this.gridStep) * this.gridStep);
+        const endX = Math.min(this.mapSize, Math.ceil((this.offsetX + visibleRange) / this.gridStep) * this.gridStep);
+        const startY = Math.max(0, Math.floor(this.offsetY / this.gridStep) * this.gridStep);
+        const endY = Math.min(this.mapSize, Math.ceil((this.offsetY + visibleRange) / this.gridStep) * this.gridStep);
 
         // Function to convert coordinate to pixel position
-        const toPixelX = (x) => padding.left + ((x - this.offsetX) / 2000) * graphWidth * this.zoomLevel;
-        const toPixelY = (y) => height - padding.bottom - ((y - this.offsetY) / 2000) * graphHeight * this.zoomLevel;
+        const toPixelX = (x) => padding.left + ((x - this.offsetX) / this.mapSize) * graphWidth * this.zoomLevel;
+        const toPixelY = (y) => height - padding.bottom - ((y - this.offsetY) / this.mapSize) * graphHeight * this.zoomLevel;
 
         // Draw the four edges of the graph first
         ctx.beginPath();
@@ -418,7 +430,7 @@ class UniverseMap {
         ctx.stroke();
 
         // Draw vertical lines and x-coordinates
-        for (let i = startX; i <= endX; i += 250) {
+        for (let i = startX; i <= endX; i += this.gridStep) {
             const x = toPixelX(i);
 
             // Only draw grid lines within the graph boundaries
@@ -447,7 +459,7 @@ class UniverseMap {
         }
 
         // Draw horizontal lines and y-coordinates
-        for (let i = startY; i <= endY; i += 250) {
+        for (let i = startY; i <= endY; i += this.gridStep) {
             const y = toPixelY(i);
 
             // Only draw grid lines within the graph boundaries
@@ -652,8 +664,8 @@ class UniverseMap {
                 const rangeLevel = ss.range ?? 0;
                 const rangeLy = 10 + rangeLevel;
                 // Convert range in light years to pixels on canvas (handle non-square aspect ratio)
-                const radiusX = (rangeLy / 2000.0) * graphWidth * this.zoomLevel;
-                const radiusY = (rangeLy / 2000.0) * graphHeight * this.zoomLevel;
+                const radiusX = (rangeLy / this.mapSize) * graphWidth * this.zoomLevel;
+                const radiusY = (rangeLy / this.mapSize) * graphHeight * this.zoomLevel;
 
                 const circleColor = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 0.3)`; // 60% transparent
 
@@ -933,20 +945,20 @@ class UniverseMap {
         const padding = this.getPadding();
         const graphWidth = this.canvas.width - padding.left - padding.right;
         const graphHeight = this.canvas.height - padding.top - padding.bottom;
-        const toPixelX = (x) => padding.left + ((x - this.offsetX) / 2000) * graphWidth * this.zoomLevel;
-        const toPixelY = (y) => this.canvas.height - padding.bottom - ((y - this.offsetY) / 2000) * graphHeight * this.zoomLevel;
+        const toPixelX = (x) => padding.left + ((x - this.offsetX) / this.mapSize) * graphWidth * this.zoomLevel;
+        const toPixelY = (y) => this.canvas.height - padding.bottom - ((y - this.offsetY) / this.mapSize) * graphHeight * this.zoomLevel;
 
         if (this.isDragging) {
             // Calculate the movement in coordinate space
-            const dx = (x - this.lastX) / (graphWidth * this.zoomLevel) * 2000;
-            const dy = (y - this.lastY) / (graphHeight * this.zoomLevel) * 2000;
+            const dx = (x - this.lastX) / (graphWidth * this.zoomLevel) * this.mapSize;
+            const dy = (y - this.lastY) / (graphHeight * this.zoomLevel) * this.mapSize;
 
             // Update offset (negative because we want to move the map in the opposite direction of the drag)
             this.offsetX -= dx;
             this.offsetY += dy; // Positive because y-axis is inverted
 
             // Ensure the offset stays within bounds
-            const maxOffset = 2000 * (1 - 1 / this.zoomLevel);
+            const maxOffset = this.mapSize * (1 - 1 / this.zoomLevel);
             this.offsetX = Math.max(0, Math.min(maxOffset, this.offsetX));
             this.offsetY = Math.max(0, Math.min(maxOffset, this.offsetY));
 
@@ -1016,8 +1028,8 @@ class UniverseMap {
 
             for (const [coords, date] of systemVisits) {
                 const [coordX, coordY] = coords.split(',').map(Number);
-                const pixelX = padding.left + ((coordX - this.offsetX) / 2000) * graphWidth * this.zoomLevel;
-                const pixelY = this.canvas.height - padding.bottom - ((coordY - this.offsetY) / 2000) * graphHeight * this.zoomLevel;
+                const pixelX = padding.left + ((coordX - this.offsetX) / this.mapSize) * graphWidth * this.zoomLevel;
+                const pixelY = this.canvas.height - padding.bottom - ((coordY - this.offsetY) / this.mapSize) * graphHeight * this.zoomLevel;
 
                 const distance = Math.sqrt(Math.pow(x - pixelX, 2) + Math.pow(y - pixelY, 2));
 
@@ -1038,8 +1050,8 @@ class UniverseMap {
         if (!this.hoveredJourneyPoint) {
             let found = false;
             for (const system of this.systems) {
-                const systemX = padding.left + ((system.coordinate_x - this.offsetX) / 2000) * graphWidth * this.zoomLevel;
-                const systemY = this.canvas.height - padding.bottom - ((system.coordinate_y - this.offsetY) / 2000) * graphHeight * this.zoomLevel;
+                const systemX = padding.left + ((system.coordinate_x - this.offsetX) / this.mapSize) * graphWidth * this.zoomLevel;
+                const systemY = this.canvas.height - padding.bottom - ((system.coordinate_y - this.offsetY) / this.mapSize) * graphHeight * this.zoomLevel;
                 const distance = Math.sqrt(Math.pow(x - systemX, 2) + Math.pow(y - systemY, 2));
 
                 if (distance < 10) {
@@ -1058,8 +1070,8 @@ class UniverseMap {
         if (this.showSpaceStations && this.squadronSpaceStations && this.squadronSpaceStations.length > 0) {
             let foundSS = false;
             for (const ss of this.squadronSpaceStations) {
-                const ssX = padding.left + ((ss.x - this.offsetX) / 2000) * graphWidth * this.zoomLevel;
-                const ssY = this.canvas.height - padding.bottom - ((ss.y - this.offsetY) / 2000) * graphHeight * this.zoomLevel;
+                const ssX = padding.left + ((ss.x - this.offsetX) / this.mapSize) * graphWidth * this.zoomLevel;
+                const ssY = this.canvas.height - padding.bottom - ((ss.y - this.offsetY) / this.mapSize) * graphHeight * this.zoomLevel;
                 const distance = Math.sqrt(Math.pow(x - ssX, 2) + Math.pow(y - ssY, 2));
                 if (distance < 10) {
                     this.hoveredSpaceStation = ss;
@@ -1080,8 +1092,8 @@ class UniverseMap {
         if (this.showEnemyStations && this.enemyStations && this.enemyStations.length > 0) {
             let foundEnemyStation = false;
             for (const station of this.enemyStations) {
-                const stationX = padding.left + ((station.x - this.offsetX) / 2000) * graphWidth * this.zoomLevel;
-                const stationY = this.canvas.height - padding.bottom - ((station.y - this.offsetY) / 2000) * graphHeight * this.zoomLevel;
+                const stationX = padding.left + ((station.x - this.offsetX) / this.mapSize) * graphWidth * this.zoomLevel;
+                const stationY = this.canvas.height - padding.bottom - ((station.y - this.offsetY) / this.mapSize) * graphHeight * this.zoomLevel;
                 const distance = Math.sqrt(Math.pow(x - stationX, 2) + Math.pow(y - stationY, 2));
                 if (distance < 10) {
                     this.hoveredEnemyStation = station;
@@ -1124,8 +1136,8 @@ class UniverseMap {
         const graphWidth = this.canvas.width - padding.left - padding.right;
         const graphHeight = this.canvas.height - padding.top - padding.bottom;
 
-        const coordX = this.offsetX + ((mouseX - padding.left) / (graphWidth * this.zoomLevel)) * 2000;
-        const coordY = this.offsetY + ((this.canvas.height - mouseY - padding.bottom) / (graphHeight * this.zoomLevel)) * 2000;
+        const coordX = this.offsetX + ((mouseX - padding.left) / (graphWidth * this.zoomLevel)) * this.mapSize;
+        const coordY = this.offsetY + ((this.canvas.height - mouseY - padding.bottom) / (graphHeight * this.zoomLevel)) * this.mapSize;
 
         // Update zoom level
         const delta = e.deltaY;
@@ -1145,14 +1157,14 @@ class UniverseMap {
         this.zoomLevel = Math.min(100, newZoomLevel);
 
         // Calculate new offset to keep the point under the mouse in the same position
-        const newCoordX = this.offsetX + ((mouseX - padding.left) / (graphWidth * this.zoomLevel)) * 2000;
-        const newCoordY = this.offsetY + ((this.canvas.height - mouseY - padding.bottom) / (graphHeight * this.zoomLevel)) * 2000;
+        const newCoordX = this.offsetX + ((mouseX - padding.left) / (graphWidth * this.zoomLevel)) * this.mapSize;
+        const newCoordY = this.offsetY + ((this.canvas.height - mouseY - padding.bottom) / (graphHeight * this.zoomLevel)) * this.mapSize;
 
         this.offsetX += (coordX - newCoordX);
         this.offsetY += (coordY - newCoordY);
 
         // Ensure the offset stays within bounds
-        const maxOffset = 2000 * (1 - 1 / this.zoomLevel);
+        const maxOffset = this.mapSize * (1 - 1 / this.zoomLevel);
         this.offsetX = Math.max(0, Math.min(maxOffset, this.offsetX));
         this.offsetY = Math.max(0, Math.min(maxOffset, this.offsetY));
 
@@ -1193,15 +1205,15 @@ class UniverseMap {
                     const graphWidth = this.canvas.width - padding.left - padding.right;
                     const graphHeight = this.canvas.height - padding.top - padding.bottom;
 
-                    const coordX = this.offsetX + ((x - padding.left) / (graphWidth * 1)) * 2000;
-                    const coordY = this.offsetY + ((this.canvas.height - y - padding.bottom) / (graphHeight * 1)) * 2000;
+                    const coordX = this.offsetX + ((x - padding.left) / (graphWidth * 1)) * this.mapSize;
+                    const coordY = this.offsetY + ((this.canvas.height - y - padding.bottom) / (graphHeight * 1)) * this.mapSize;
 
                     // Center the view on the tapped point
-                    this.offsetX = coordX - (graphWidth * this.zoomLevel / 2 / graphWidth) * 2000;
-                    this.offsetY = coordY - (graphHeight * this.zoomLevel / 2 / graphHeight) * 2000;
+                    this.offsetX = coordX - (graphWidth * this.zoomLevel / 2 / graphWidth) * this.mapSize;
+                    this.offsetY = coordY - (graphHeight * this.zoomLevel / 2 / graphHeight) * this.mapSize;
 
                     // Ensure the offset stays within bounds
-                    const maxOffset = 2000 * (1 - 1 / this.zoomLevel);
+                    const maxOffset = this.mapSize * (1 - 1 / this.zoomLevel);
                     this.offsetX = Math.max(0, Math.min(maxOffset, this.offsetX));
                     this.offsetY = Math.max(0, Math.min(maxOffset, this.offsetY));
                 }
@@ -1244,18 +1256,18 @@ class UniverseMap {
                 const graphWidth = this.canvas.width - padding.left - padding.right;
                 const graphHeight = this.canvas.height - padding.top - padding.bottom;
 
-                const coordX = this.touchStartOffsetX + ((currentCenterX - rect.left - padding.left) / (graphWidth * this.touchStartZoomLevel)) * 2000;
-                const coordY = this.touchStartOffsetY + ((this.canvas.height - (currentCenterY - rect.top) - padding.bottom) / (graphHeight * this.touchStartZoomLevel)) * 2000;
+                const coordX = this.touchStartOffsetX + ((currentCenterX - rect.left - padding.left) / (graphWidth * this.touchStartZoomLevel)) * this.mapSize;
+                const coordY = this.touchStartOffsetY + ((this.canvas.height - (currentCenterY - rect.top) - padding.bottom) / (graphHeight * this.touchStartZoomLevel)) * this.mapSize;
 
                 // Calculate new offset to keep the point under the center in the same position
-                const newCoordX = this.offsetX + ((currentCenterX - rect.left - padding.left) / (graphWidth * this.zoomLevel)) * 2000;
-                const newCoordY = this.offsetY + ((this.canvas.height - (currentCenterY - rect.top) - padding.bottom) / (graphHeight * this.zoomLevel)) * 2000;
+                const newCoordX = this.offsetX + ((currentCenterX - rect.left - padding.left) / (graphWidth * this.zoomLevel)) * this.mapSize;
+                const newCoordY = this.offsetY + ((this.canvas.height - (currentCenterY - rect.top) - padding.bottom) / (graphHeight * this.zoomLevel)) * this.mapSize;
 
                 this.offsetX += (coordX - newCoordX);
                 this.offsetY += (coordY - newCoordY);
 
                 // Ensure the offset stays within bounds
-                const maxOffset = 2000 * (1 - 1 / this.zoomLevel);
+                const maxOffset = this.mapSize * (1 - 1 / this.zoomLevel);
                 this.offsetX = Math.max(0, Math.min(maxOffset, this.offsetX));
                 this.offsetY = Math.max(0, Math.min(maxOffset, this.offsetY));
             }
@@ -1271,15 +1283,15 @@ class UniverseMap {
             const graphWidth = this.canvas.width - padding.left - padding.right;
             const graphHeight = this.canvas.height - padding.top - padding.bottom;
 
-            const dx = (x - this.lastX) / (graphWidth * this.zoomLevel) * 2000;
-            const dy = (y - this.lastY) / (graphHeight * this.zoomLevel) * 2000;
+            const dx = (x - this.lastX) / (graphWidth * this.zoomLevel) * this.mapSize;
+            const dy = (y - this.lastY) / (graphHeight * this.zoomLevel) * this.mapSize;
 
             // Update offset (negative because we want to move the map in the opposite direction of the drag)
             this.offsetX -= dx;
             this.offsetY += dy; // Positive because y-axis is inverted
 
             // Ensure the offset stays within bounds
-            const maxOffset = 2000 * (1 - 1 / this.zoomLevel);
+            const maxOffset = this.mapSize * (1 - 1 / this.zoomLevel);
             this.offsetX = Math.max(0, Math.min(maxOffset, this.offsetX));
             this.offsetY = Math.max(0, Math.min(maxOffset, this.offsetY));
 
@@ -1361,14 +1373,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 loadButton.textContent = 'Loading...';
 
                 // Initialize global cache if it doesn't already exist
-                window.runesDataCache = window.runesDataCache || { systems: null, journal: null, user: null };
+                window.runesDataCache = window.runesDataCache || { systems: null, journal: null, user: null, apiServer: null };
 
                 // Load systems
                 let systemsData;
                 if (window.runesDataCache.systems) {
                     systemsData = window.runesDataCache.systems;
                 } else {
-                    const systemsResponse = await fetch('https://api.stellarodyssey.app/api/public/systems', {
+                    const systemsResponse = await fetchGameApi('/api/public/systems', {
                         headers: {
                             'Accept': 'application/json',
                             'sodyssey-api-key': apiKey
@@ -1381,15 +1393,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     systemsData = await systemsResponse.json();
                     window.runesDataCache.systems = systemsData;
+                    window.runesDataCache.apiServer = systemsResponse.apiServer;
                 }
 
+                // The Steam server hosts a bigger 7000x7000 universe; resize the map accordingly
+                universeMap.setMapSize(window.runesDataCache.apiServer === 'steam' ? 7000 : 2000);
                 universeMap.loadSystems(systemsData);
 
                 // Add a 1 second delay between requests
                 await new Promise(resolve => setTimeout(resolve, 1000));
 
                 // Load journal
-                const journalResponse = await fetch('https://api.stellarodyssey.app/api/public/journal', {
+                const journalResponse = await fetchGameApi('/api/public/journal', {
                     headers: {
                         'Accept': 'application/json',
                         'sodyssey-api-key': apiKey
@@ -1407,7 +1422,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Fetch user API for squadronSpaceStations
-                const userResponse = await fetch('https://api.stellarodyssey.app/api/public/user', {
+                const userResponse = await fetchGameApi('/api/public/user', {
                     headers: {
                         'Accept': 'application/json',
                         'sodyssey-api-key': apiKey
@@ -1443,7 +1458,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     // Load stations data and filter enemy stations
-                    const stationsResponse = await fetch('https://api.stellarodyssey.app/api/public/stations', {
+                    const stationsResponse = await fetchGameApi('/api/public/stations', {
                         headers: {
                             'Accept': 'application/json',
                             'sodyssey-api-key': apiKey
@@ -1466,7 +1481,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Fetch dungeons
                     try {
-                        const dungeonsResponse = await fetch('https://api.stellarodyssey.app/api/public/dungeons', {
+                        const dungeonsResponse = await fetchGameApi('/api/public/dungeons', {
                             headers: {
                                 'Accept': 'application/json',
                                 'sodyssey-api-key': apiKey
@@ -1485,7 +1500,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Fetch runes
                     try {
-                        const runesResponse = await fetch('https://api.stellarodyssey.app/api/public/activerunes', {
+                        const runesResponse = await fetchGameApi('/api/public/activerunes', {
                             headers: {
                                 'Accept': 'application/json',
                                 'sodyssey-api-key': apiKey
