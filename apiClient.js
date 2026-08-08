@@ -1,7 +1,15 @@
 // Shared client for the Stellar Odyssey public API.
-// Tries the primary server first; if it responds 404 (player/key not found there),
-// falls back to the Steam server. Any other status or a network error is returned/thrown
-// immediately without falling back.
+// Tries the primary server first; if it responds with a "key/player not found here"
+// status, falls back to the Steam server. Any other status or a network error is
+// returned/thrown immediately without falling back.
+//
+// The primary server isn't consistent about how it reports "this key isn't mine":
+// /api/public/user does a DB lookup and returns 404. Every other public endpoint
+// (systems, journal, dungeons, stations, activerunes) never does that lookup - it
+// returns a generic 403 {"msg":"API Key missing"} for a missing, malformed, or
+// simply foreign (e.g. Steam-only) key. Both statuses are therefore treated as
+// fallback triggers.
+const NOT_FOUND_STATUSES = [404, 403];
 
 const STELLAR_API_SERVERS = [
     { name: 'primary', baseUrl: 'https://api.stellarodyssey.app' },
@@ -17,7 +25,7 @@ async function fetchGameApi(path, options = {}) {
         response.apiBaseUrl = server.baseUrl;
 
         const isLastServer = i === STELLAR_API_SERVERS.length - 1;
-        if (response.status === 404 && !isLastServer) {
+        if (NOT_FOUND_STATUSES.includes(response.status) && !isLastServer) {
             continue;
         }
         return response;
