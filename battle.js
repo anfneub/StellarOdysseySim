@@ -70,6 +70,7 @@ class Battle {
                 }
                 curr_dmg *= (1 + this.total_damage_modifier);
             }
+            curr_dmg = Math.floor(curr_dmg);
             attacker.hit_counter += 1;
             target.current_hp = Math.max(0.0, target.current_hp - curr_dmg);
             if (this.verbose) {
@@ -87,6 +88,7 @@ class Battle {
                     curr_dmg *= (1 + attacker.crit_dmg);
                 }
                 curr_dmg *= (1 + this.total_damage_modifier);
+                curr_dmg = Math.floor(curr_dmg);
                 attacker.hit_counter += 1;
                 target.current_hp = Math.max(0.0, target.current_hp - curr_dmg);
                 if (this.verbose) {
@@ -233,6 +235,7 @@ class PvPBattle {
                 }
                 // No elemental bonus
             }
+            curr_dmg = Math.floor(curr_dmg);
             attacker.hit_counter += 1;
             this.apply_damage_chain(attacker, targetSquad, target, curr_dmg, false);
         } else if (this.verbose) {
@@ -246,6 +249,7 @@ class PvPBattle {
                 if (Math.random() < attacker.crit_chance) {
                     curr_dmg *= (1 + attacker.crit_dmg);
                 }
+                curr_dmg = Math.floor(curr_dmg);
                 attacker.hit_counter += 1;
                 this.apply_damage_chain(attacker, targetSquad, target, curr_dmg, true);
             } else if (this.verbose) {

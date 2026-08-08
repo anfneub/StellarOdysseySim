@@ -31,14 +31,16 @@ class Player {
         this.pre = Math.floor(precision * (1.0 + boost) * (1.0 + battling_precision_boost));
         this.eva = Math.floor(evasion * (1.0 + boost) * (1.0 + battling_evasion_boost));
         this.hp = Math.floor(((7.0 * this.hull * (1.0 + battling_hull_boost)) + shield_def) * (1.0 + boost));
-        this.dmg = Math.floor((((7.0 * this.pow * (1.0 + battling_weapon_boost)) + weapon_dmg) * this.n_clones) * (1.0 + boost));
-        
+        // Not floored here: crit/elemental multipliers are applied on top of this in battle.js,
+        // and the final hit damage must be floored only once, after those are applied.
+        this.dmg = ((7.0 * this.pow * (1.0 + battling_weapon_boost)) + weapon_dmg) * (1.0 + boost);
+
         if (this.mode === 'pvp') {
             this.hp = Math.floor(this.hp * 7.0 * this.n_clones);
         }
 
     }
-    
+
     serialize() {
         return {
             name: this.name,
