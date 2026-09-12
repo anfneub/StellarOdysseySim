@@ -63,6 +63,7 @@ class UniverseMap {
         this.showSpaceStations = localStorage.getItem('showSpaceStations') === 'true';
         this.showEnemyStations = localStorage.getItem('showEnemyStations') === 'true';
         this.showEnemyStations = localStorage.getItem('showEnemyStations') === 'true';
+        this.applySystemFilters = localStorage.getItem('applySystemFilters') === 'true';
         this.showDungeons = localStorage.getItem('showDungeons') === null ? true : localStorage.getItem('showDungeons') === 'true';
         this.showRunes = localStorage.getItem('showRunes') === null ? true : localStorage.getItem('showRunes') === 'true';
         this.squadronSpaceStations = [];
@@ -110,6 +111,16 @@ class UniverseMap {
             localStorage.setItem('showEnemyStations', this.showEnemyStations);
             this.draw();
         });
+
+        const applyFiltersCheckbox = document.getElementById('apply_system_filters');
+        if (applyFiltersCheckbox) {
+            applyFiltersCheckbox.checked = this.applySystemFilters;
+            applyFiltersCheckbox.addEventListener('change', (e) => {
+                this.applySystemFilters = e.target.checked;
+                localStorage.setItem('applySystemFilters', this.applySystemFilters);
+                this.draw();
+            });
+        }
 
         const showDungeonsCheckbox = document.getElementById('show_dungeons');
         if (showDungeonsCheckbox) {
@@ -217,7 +228,18 @@ class UniverseMap {
         if (systemsCountElement) {
             systemsCountElement.textContent = `There are currently ${this.systems.length} publicly discovered systems`;
         }
+        if (window.systemFiltersUI) window.systemFiltersUI.refreshCount();
         this.draw();
+    }
+
+    systemPassesFilters(system) {
+        if (!window.systemFiltersUI) return true;
+        return window.systemFiltersUI.matches(system);
+    }
+
+    getVisibleSystems() {
+        if (!this.applySystemFilters) return this.systems;
+        return this.systems.filter((system) => this.systemPassesFilters(system));
     }
 
     loadDungeons(data) {
@@ -547,7 +569,7 @@ class UniverseMap {
 
         // Draw systems if showPublicSystems is true
         if (this.showPublicSystems) {
-            this.systems.forEach((system, index) => {
+            this.getVisibleSystems().forEach((system, index) => {
 
                 if (system.coordinate_x < this.visible.left ||
                     system.coordinate_x > this.visible.right ||
@@ -1049,7 +1071,7 @@ class UniverseMap {
         // If not hovering over a journey point, check for systems
         if (!this.hoveredJourneyPoint) {
             let found = false;
-            for (const system of this.systems) {
+            for (const system of this.getVisibleSystems()) {
                 const systemX = padding.left + ((system.coordinate_x - this.offsetX) / this.mapSize) * graphWidth * this.zoomLevel;
                 const systemY = this.canvas.height - padding.bottom - ((system.coordinate_y - this.offsetY) / this.mapSize) * graphHeight * this.zoomLevel;
                 const distance = Math.sqrt(Math.pow(x - systemX, 2) + Math.pow(y - systemY, 2));
@@ -1394,6 +1416,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     systemsData = await systemsResponse.json();
                     window.runesDataCache.systems = systemsData;
                     window.runesDataCache.apiServer = systemsResponse.apiServer;
+                    if (window.NodesDB && Array.isArray(systemsData.systems)) {
+                        NodesDB.saveSystems(systemsData.systems);
+                    }
                 }
 
                 // The Steam server hosts a bigger 7000x7000 universe; resize the map accordingly

@@ -151,6 +151,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     systemsData = await sysRes.json();
                     window.runesDataCache.systems = systemsData;
                     window.runesDataCache.apiServer = sysRes.apiServer;
+                    if (window.NodesDB && Array.isArray(systemsData.systems)) {
+                        NodesDB.saveSystems(systemsData.systems);
+                    }
                     updateProgress(35);
                 }
 
