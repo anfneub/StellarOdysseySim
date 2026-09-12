@@ -1397,28 +1397,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Initialize global cache if it doesn't already exist
                 window.runesDataCache = window.runesDataCache || { systems: null, journal: null, user: null, apiServer: null };
 
-                // Load systems
-                let systemsData;
-                if (window.runesDataCache.systems) {
-                    systemsData = window.runesDataCache.systems;
-                } else {
-                    const systemsResponse = await fetchGameApi('/api/public/systems', {
-                        headers: {
-                            'Accept': 'application/json',
-                            'sodyssey-api-key': apiKey
-                        }
-                    });
-
-                    if (!systemsResponse.ok) {
-                        throw new Error(`Server responded with status ${systemsResponse.status}`);
+                // Load systems. This button is an explicit (re)load action, so it
+                // always fetches fresh data with the current API key rather than
+                // reusing a cached response from a previous, possibly different,
+                // server/key (the cache had otherwise made a second load with a
+                // different key silently keep showing the first server's data).
+                const systemsResponse = await fetchGameApi('/api/public/systems', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'sodyssey-api-key': apiKey
                     }
+                });
 
-                    systemsData = await systemsResponse.json();
-                    window.runesDataCache.systems = systemsData;
-                    window.runesDataCache.apiServer = systemsResponse.apiServer;
-                    if (window.NodesDB && Array.isArray(systemsData.systems)) {
-                        NodesDB.saveSystems(systemsData.systems);
-                    }
+                if (!systemsResponse.ok) {
+                    throw new Error(`Server responded with status ${systemsResponse.status}`);
+                }
+
+                const systemsData = await systemsResponse.json();
+                window.runesDataCache.systems = systemsData;
+                window.runesDataCache.apiServer = systemsResponse.apiServer;
+                if (window.NodesDB && Array.isArray(systemsData.systems)) {
+                    NodesDB.saveSystems(systemsData.systems);
                 }
 
                 // The Steam server hosts a bigger 7000x7000 universe; resize the map accordingly
