@@ -1,3 +1,6 @@
+2026-09-12
+- Introduced advanced AND/OR system type and quality filter
+
 2026-08-07
 - Laid the mechanics for steam API server import
 
