@@ -1,4 +1,7 @@
 2026-09-12
+- Improved tooltip of systems in map
+
+2026-09-12
 - Introduced advanced AND/OR system type and quality filter
 
 2026-08-07

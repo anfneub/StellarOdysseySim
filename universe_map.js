@@ -591,14 +591,6 @@ class UniverseMap {
                     // Draw system point as a square (2x2 pixels)
                     const size = this.hoveredSystem === system ? 7 : 5;
                     ctx.fillRect(x - size / 2, y - size / 2, size, size);
-
-                    // Draw system name if hovered
-                    if (this.hoveredSystem === system) {
-                        ctx.font = '14px Arial';
-                        ctx.fillStyle = '#e6eaf3';
-                        ctx.textAlign = 'center';
-                        ctx.fillText(`${system.name} (${system.coordinate_x}, ${system.coordinate_y})`, x, y - 10);
-                    }
                 }
             });
         }
@@ -958,6 +950,79 @@ class UniverseMap {
             }
             this.ctx.restore();
         }
+
+        // Draw system tooltip last so it sits above every other map element
+        if (this.showPublicSystems && this.hoveredSystem) {
+            this.drawSystemTooltip(this.hoveredSystem, toPixelX, toPixelY);
+        }
+    }
+
+    drawSystemTooltip(system, toPixelX, toPixelY) {
+        const ctx = this.ctx;
+        const px = toPixelX(system.coordinate_x);
+        const py = toPixelY(system.coordinate_y);
+
+        const lines = [
+            { text: `${system.name} (${system.coordinate_x}, ${system.coordinate_y})`, bold: true }
+        ];
+        if (system.starter) lines.push({ text: 'Starter system', color: '#4CAF50' });
+
+        // Best node quality per type, listed in a fixed order and skipping absent types
+        const bestQuality = {};
+        const bodies = Array.isArray(system.bodies) ? system.bodies : [];
+        for (const body of bodies) {
+            if (!body.hasNodes || !body.nodeType) continue;
+            const quality = body.nodeQuality ?? 0;
+            if (!(body.nodeType in bestQuality) || quality > bestQuality[body.nodeType]) {
+                bestQuality[body.nodeType] = quality;
+            }
+        }
+        const nodeTypeOrder = [['rocky', 'Rocky'], ['icy', 'Icy'], ['gas', 'Gas'], ['crystal', 'Crystal']];
+        for (const [type, label] of nodeTypeOrder) {
+            if (type in bestQuality) {
+                lines.push({ text: `${label}: ${bestQuality[type]}%`, color: '#8fd3ff' });
+            }
+        }
+        if (Object.keys(bestQuality).length === 0) {
+            lines.push({ text: 'No gathering nodes', color: '#9aa3b5' });
+        }
+
+        const lineHeight = 18;
+        const paddingX = 9;
+        const paddingY = 8;
+
+        ctx.save();
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        const textWidth = Math.max(...lines.map(line => {
+            ctx.font = line.bold ? 'bold 13px Arial' : '13px Arial';
+            return ctx.measureText(line.text).width;
+        }));
+        const boxWidth = textWidth + paddingX * 2;
+        const boxHeight = lines.length * lineHeight + paddingY * 2;
+
+        // Place to the right of the system, flipping/clamping to stay inside the canvas
+        let boxX = px + 12;
+        let boxY = py - 12;
+        if (boxX + boxWidth > this.canvas.width - 4) boxX = px - 12 - boxWidth;
+        boxX = Math.max(4, boxX);
+        if (boxY + boxHeight > this.canvas.height - 4) boxY = this.canvas.height - 4 - boxHeight;
+        boxY = Math.max(4, boxY);
+
+        ctx.fillStyle = 'rgba(35, 40, 58, 0.95)';
+        ctx.strokeStyle = system.starter ? '#4CAF50' : '#FF5252';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 7);
+        ctx.fill();
+        ctx.stroke();
+
+        lines.forEach((line, i) => {
+            ctx.font = line.bold ? 'bold 13px Arial' : '13px Arial';
+            ctx.fillStyle = line.color || '#e6eaf3';
+            ctx.fillText(line.text, boxX + paddingX, boxY + paddingY + i * lineHeight);
+        });
+        ctx.restore();
     }
 
     handleMouseMove(e) {
