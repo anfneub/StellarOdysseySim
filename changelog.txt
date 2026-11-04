@@ -1,3 +1,7 @@
+2026-11-04
+- Added a test station to the universe map to preview a station's range and how many systems it covers
+- Added tooltips for unexplored systems in the universe map
+
 2026-09-12
 - Improved tooltip of systems in map
 
