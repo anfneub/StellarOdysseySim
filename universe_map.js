@@ -77,6 +77,9 @@ class UniverseMap {
         this.testStationMouse = null;    // Map coordinates under the cursor, null when off-canvas
         this.hoveredUnexplored = null;   // Hovered undiscovered grid point
         this.exploredKeys = new Set();   // Discovered system coordinates, see getCoordKey()
+        this.testStationMaxRange = 100;  // Keeps countSystemsInRange cheap (it scans ~4*radius^2 points)
+        this.minCoord = 1;               // Lowest grid coordinate, 0 if the loaded systems use it
+        this.rangeCountCache = new Map(); // "x,y,radius" -> counts, cleared when systems change
 
         // Space station coordinates (hardcoded)
         // this.spaceStations = [];
@@ -149,6 +152,17 @@ class UniverseMap {
             });
         }
 
+        // "Move to player/voyager" buttons next to "Show current position"
+        this.moveToButtons = [
+            ['move_to_player_btn', () => this.playerPosition],
+            ['move_to_voyager_btn', () => this.voyagerPosition]
+        ].map(([id, getPosition]) => {
+            const button = document.getElementById(id);
+            if (button) button.addEventListener('click', () => this.moveToPosition(getPosition()));
+            return { button, getPosition };
+        });
+        this.updateMoveToButtons();
+
         const testStationToggle = document.getElementById('test_station_toggle');
         if (testStationToggle) {
             testStationToggle.addEventListener('click', () => {
@@ -162,9 +176,24 @@ class UniverseMap {
 
         const testStationRangeInput = document.getElementById('test_station_range');
         if (testStationRangeInput) {
+            const clampRange = (value) => Math.min(this.testStationMaxRange, Math.max(0, Number(value) || 0));
+            const showRadius = () => {
+                const radiusLabel = document.getElementById('test_station_radius');
+                if (radiusLabel) radiusLabel.textContent = `radius ${this.getTestStationRadius()}`;
+            };
+
+            // Restore the range saved on a previous visit
+            const savedRange = localStorage.getItem('testStationRange');
+            if (savedRange !== null) {
+                this.testStationRange = clampRange(savedRange);
+                testStationRangeInput.value = this.testStationRange;
+            }
+            showRadius();
+
             testStationRangeInput.addEventListener('input', (e) => {
-                this.testStationRange = Math.max(0, Number(e.target.value) || 0);
-                document.getElementById('test_station_radius').textContent = `radius ${this.getTestStationRadius()}`;
+                this.testStationRange = clampRange(e.target.value);
+                localStorage.setItem('testStationRange', this.testStationRange);
+                showRadius();
                 this.draw();
             });
         }
@@ -253,15 +282,98 @@ class UniverseMap {
     }
 
     loadSystems(data) {
-        this.systems = data.systems;
-        this.exploredKeys = new Set(this.systems.map(s => this.getCoordKey(s.coordinate_x, s.coordinate_y)));
-        // Update the systems count text
-        const systemsCountElement = document.getElementById('systemsCount');
-        if (systemsCountElement) {
-            systemsCountElement.textContent = `There are currently ${this.systems.length} publicly discovered systems`;
+        this.beginSystemsLoad();
+        this.appendSystems(data.systems || []);
+        this.finishSystemsLoad();
+    }
+
+    // Streamed loading: beginSystemsLoad(), appendSystems(batch) as each batch arrives,
+    // then finishSystemsLoad(). The map fills in while the download is still running.
+    beginSystemsLoad() {
+        this.systems = [];
+        this.exploredKeys = new Set();
+        this.minCoord = 1;
+        this.rangeCountCache.clear();
+        this.refreshSystemsView();
+    }
+
+    appendSystems(batch) {
+        for (let k = 0; k < batch.length; k++) {
+            const system = batch[k];
+            this.systems.push(system);
+            this.exploredKeys.add(this.getCoordKey(system.coordinate_x, system.coordinate_y));
+            if (system.coordinate_x === 0 || system.coordinate_y === 0) this.minCoord = 0;
         }
+        this.rangeCountCache.clear();
+
+        // A full redraw walks every system loaded so far, so only paint the new batch on top.
+        // Anything drawn over the systems (journey, stations, tooltips) may end up underneath
+        // new squares until the next full redraw, which finishSystemsLoad() does.
+        if (this.showPublicSystems && !this.paused && this.visible) {
+            this.paintSystemPoints(this.applySystemFilters
+                ? batch.filter((system) => this.systemPassesFilters(system))
+                : batch);
+        }
+        this.updateSystemsCountText(true);
+    }
+
+    // Draws system squares onto the canvas as it is, using the current view (this.visible
+    // is set by draw()). draw() uses it for all systems; loading uses it to paint only each
+    // new batch instead of redrawing the whole map.
+    paintSystemPoints(systems) {
+        const ctx = this.ctx;
+        const width = this.canvas.width;
+        const height = this.canvas.height;
+        const padding = this.getPadding();
+        const graphWidth = width - padding.left - padding.right;
+        const graphHeight = height - padding.top - padding.bottom;
+        const visible = this.visible;
+        const scaleX = graphWidth * this.zoomLevel / this.mapSize;
+        const scaleY = graphHeight * this.zoomLevel / this.mapSize;
+
+        for (let k = 0; k < systems.length; k++) {
+            const system = systems[k];
+            if (system.coordinate_x < visible.left ||
+                system.coordinate_x > visible.right ||
+                system.coordinate_y < visible.top ||
+                system.coordinate_y > visible.bottom) {
+                continue;
+            }
+
+            const x = padding.left + (system.coordinate_x - this.offsetX) * scaleX;
+            const y = height - padding.bottom - (system.coordinate_y - this.offsetY) * scaleY;
+
+            // Only draw systems that are within the graph boundaries
+            if (x >= padding.left && x <= width - padding.right &&
+                y >= padding.top && y <= height - padding.bottom) {
+
+                // Set color based on whether it's a starter system
+                ctx.fillStyle = system.starter ? '#4CAF50' : '#FF5252';
+
+                const size = this.hoveredSystem === system ? 7 : 5;
+                ctx.fillRect(x - size / 2, y - size / 2, size, size);
+            }
+        }
+    }
+
+    finishSystemsLoad() {
+        this.refreshSystemsView();
+    }
+
+    refreshSystemsView() {
+        this.updateSystemsCountText(false);
+        // The filter count re-checks every system, so it is only updated here, not per batch
         if (window.systemFiltersUI) window.systemFiltersUI.refreshCount();
         this.draw();
+    }
+
+    updateSystemsCountText(loading) {
+        const systemsCountElement = document.getElementById('systemsCount');
+        if (systemsCountElement) {
+            systemsCountElement.textContent = loading
+                ? `Loading... ${this.systems.length} publicly discovered systems so far`
+                : `There are currently ${this.systems.length} publicly discovered systems`;
+        }
     }
 
     systemPassesFilters(system) {
@@ -303,7 +415,38 @@ class UniverseMap {
 
     setPlayerPosition(position) {
         this.playerPosition = position;
+        this.updateMoveToButtons();
         this.draw();
+    }
+
+    setVoyagerPosition(position) {
+        this.voyagerPosition = position;
+        this.updateMoveToButtons();
+        this.draw();
+    }
+
+    // The move buttons stay disabled until the position they jump to is known
+    updateMoveToButtons() {
+        for (const { button, getPosition } of this.moveToButtons || []) {
+            if (!button) continue;
+            const enabled = !!getPosition();
+            button.disabled = !enabled;
+            button.style.opacity = enabled ? '1' : '0.4';
+            button.style.cursor = enabled ? 'pointer' : 'default';
+        }
+    }
+
+    // Centers the map on a position, zooming in to a 500x500 area unless already closer.
+    // Turns on "Show current position" so the pin being moved to is actually visible.
+    moveToPosition(position) {
+        if (!position) return;
+        if (!this.showCurrentPosition) {
+            this.showCurrentPosition = true;
+            localStorage.setItem('showCurrentPosition', true);
+            const checkbox = document.getElementById('show_current_position');
+            if (checkbox) checkbox.checked = true;
+        }
+        this.zoomToArea(position.x, position.y, Math.min(500, this.mapSize / this.zoomLevel));
     }
 
     // Zoom to a square area of the map centered on a point. Near an edge the area
@@ -619,30 +762,7 @@ class UniverseMap {
 
         // Draw systems if showPublicSystems is true
         if (this.showPublicSystems) {
-            this.getVisibleSystems().forEach((system, index) => {
-
-                if (system.coordinate_x < this.visible.left ||
-                    system.coordinate_x > this.visible.right ||
-                    system.coordinate_y < this.visible.top ||
-                    system.coordinate_y > this.visible.bottom) {
-                    return;
-                }
-
-                const x = toPixelX(system.coordinate_x);
-                const y = toPixelY(system.coordinate_y);
-
-                // Only draw systems that are within the visible area and graph boundaries
-                if (x >= padding.left && x <= width - padding.right &&
-                    y >= padding.top && y <= height - padding.bottom) {
-
-                    // Set color based on whether it's a starter system
-                    ctx.fillStyle = system.starter ? '#4CAF50' : '#FF5252';
-
-                    // Draw system point as a square (2x2 pixels)
-                    const size = this.hoveredSystem === system ? 7 : 5;
-                    ctx.fillRect(x - size / 2, y - size / 2, size, size);
-                }
-            });
+            this.paintSystemPoints(this.getVisibleSystems());
         }
 
         // Draw player journey if enabled (moved to the end to ensure it's drawn on top)
@@ -1128,10 +1248,14 @@ class UniverseMap {
 
     // Count discovered / undiscovered grid points within a radius of a point
     countSystemsInRange(centerX, centerY, radius) {
+        const cacheKey = `${centerX},${centerY},${radius}`;
+        const cached = this.rangeCountCache.get(cacheKey);
+        if (cached) return cached;
+
         const radiusSquared = radius * radius;
-        const minX = Math.max(1, Math.ceil(centerX - radius));
+        const minX = Math.max(this.minCoord, Math.ceil(centerX - radius));
         const maxX = Math.min(this.mapSize, Math.floor(centerX + radius));
-        const minY = Math.max(1, Math.ceil(centerY - radius));
+        const minY = Math.max(this.minCoord, Math.ceil(centerY - radius));
         const maxY = Math.min(this.mapSize, Math.floor(centerY + radius));
         let explored = 0;
         let unexplored = 0;
@@ -1144,7 +1268,10 @@ class UniverseMap {
                 else unexplored++;
             }
         }
-        return { explored, unexplored };
+        const counts = { explored, unexplored };
+        if (this.rangeCountCache.size > 5000) this.rangeCountCache.clear();
+        this.rangeCountCache.set(cacheKey, counts);
+        return counts;
     }
 
     getTestStationLines(system) {
@@ -1228,7 +1355,7 @@ class UniverseMap {
 
         const gridX = Math.round(this.testStationMouse.x);
         const gridY = Math.round(this.testStationMouse.y);
-        if (gridX < 1 || gridY < 1 || gridX > this.mapSize || gridY > this.mapSize) return;
+        if (gridX < this.minCoord || gridY < this.minCoord || gridX > this.mapSize || gridY > this.mapSize) return;
         if (this.exploredKeys.has(this.getCoordKey(gridX, gridY))) return;
 
         const distanceTo = (x, y) => Math.hypot(mouseX - toPixelX(x), mouseY - toPixelY(y));
@@ -1695,10 +1822,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 // reusing a cached response from a previous, possibly different,
                 // server/key (the cache had otherwise made a second load with a
                 // different key silently keep showing the first server's data).
-                const systemsResponse = await fetchGameApi('/api/public/systems', {
+                // Streamed: systems are parsed, drawn and stored batch by batch while
+                // the (very large) response is still downloading
+                const { response: systemsResponse, data: systemsData } = await fetchGameApiStreamed('/api/public/systems', {
                     headers: {
                         'Accept': 'application/json',
                         'sodyssey-api-key': apiKey
+                    }
+                }, {
+                    arrayKey: 'systems',
+                    onResponse: (response) => {
+                        // The Steam server hosts a bigger 7000x7000 universe; resize the map accordingly
+                        universeMap.setMapSize(response.apiServer === 'steam' ? 7000 : 2000);
+                        universeMap.beginSystemsLoad();
+                    },
+                    onItems: (systems) => universeMap.appendSystems(systems),
+                    onProgress: (bytes) => {
+                        loadButton.textContent = `Loading systems... ${(bytes / 1048576).toFixed(0)} MB`;
                     }
                 });
 
@@ -1706,16 +1846,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error(`Server responded with status ${systemsResponse.status}`);
                 }
 
-                const systemsData = await systemsResponse.json();
+                universeMap.finishSystemsLoad();
+                loadButton.textContent = 'Loading...';
                 window.runesDataCache.systems = systemsData;
                 window.runesDataCache.apiServer = systemsResponse.apiServer;
-                if (window.NodesDB && Array.isArray(systemsData.systems)) {
-                    NodesDB.saveSystems(systemsData.systems);
-                }
-
-                // The Steam server hosts a bigger 7000x7000 universe; resize the map accordingly
-                universeMap.setMapSize(window.runesDataCache.apiServer === 'steam' ? 7000 : 2000);
-                universeMap.loadSystems(systemsData);
+                // Stored only after the download so it doesn't compete with it (runs in the background)
+                if (window.NodesDB) NodesDB.saveSystems(systemsData.systems);
 
                 // Add a 1 second delay between requests
                 await new Promise(resolve => setTimeout(resolve, 1000));
@@ -1768,12 +1904,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (userData.data && userData.data.voyager &&
                         typeof userData.data.voyager.current_x === 'number' &&
                         typeof userData.data.voyager.current_y === 'number') {
-                        universeMap.voyagerPosition = {
+                        universeMap.setVoyagerPosition({
                             x: userData.data.voyager.current_x,
                             y: userData.data.voyager.current_y
-                        };
+                        });
                     } else {
-                        universeMap.voyagerPosition = null;
+                        universeMap.setVoyagerPosition(null);
                     }
 
                     // Load stations data and filter enemy stations

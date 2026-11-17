@@ -144,16 +144,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     window.runesDataCache.systems = systemsData;
                     updateProgress(35);
                 } else {
-                    const sysRes = await fetchGameApi('/api/public/systems', {
+                    // Streamed so the large systems payload is parsed in batches
+                    const { response: sysRes, data } = await fetchGameApiStreamed('/api/public/systems', {
                         headers: { 'Accept': 'application/json', 'sodyssey-api-key': apiKey }
-                    });
+                    }, { arrayKey: 'systems' });
                     if (!sysRes.ok) throw new Error(`Systems API error: ${sysRes.status}`);
-                    systemsData = await sysRes.json();
+                    systemsData = data;
                     window.runesDataCache.systems = systemsData;
                     window.runesDataCache.apiServer = sysRes.apiServer;
-                    if (window.NodesDB && Array.isArray(systemsData.systems)) {
-                        NodesDB.saveSystems(systemsData.systems);
-                    }
+                    // Stored only after the download so it doesn't compete with it (runs in the background)
+                    if (window.NodesDB) NodesDB.saveSystems(systemsData.systems);
                     updateProgress(35);
                 }
 

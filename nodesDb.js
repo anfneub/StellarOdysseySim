@@ -54,25 +54,43 @@ const NodesDB = (() => {
         return records;
     }
 
-    // Replaces the whole table with the freshly fetched systems list.
-    async function saveSystems(systems) {
-        if (!Array.isArray(systems) || systems.length === 0) return;
-        try {
-            const db = await openDb();
-            const records = extractNodeRecords(systems);
-            await new Promise((resolve, reject) => {
-                const tx = db.transaction(STORE_NAME, 'readwrite');
-                tx.oncomplete = () => resolve();
-                tx.onerror = () => reject(tx.error);
-                const store = tx.objectStore(STORE_NAME);
-                store.clear();
-                for (const record of records) {
+    // Writes run one after another so a clear always lands before the batches that follow it
+    let writeChain = Promise.resolve();
+
+    function queueWrite(work) {
+        writeChain = writeChain.then(async () => {
+            try {
+                const db = await openDb();
+                await new Promise((resolve, reject) => {
+                    const tx = db.transaction(STORE_NAME, 'readwrite');
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = () => reject(tx.error);
+                    work(tx.objectStore(STORE_NAME));
+                });
+            } catch (err) {
+                console.error('NodesDB: failed to save systems data', err);
+            }
+        });
+        return writeChain;
+    }
+
+    // Replaces the whole table with the freshly fetched systems list. Written in chunks,
+    // each in its own transaction and task, so a million-system list doesn't block the page
+    // while its records are built. Returns a promise that resolves when everything is stored.
+    const SYSTEMS_PER_WRITE = 5000;
+
+    function saveSystems(systems) {
+        if (!Array.isArray(systems) || systems.length === 0) return writeChain;
+        queueWrite((store) => store.clear());
+        for (let start = 0; start < systems.length; start += SYSTEMS_PER_WRITE) {
+            const chunk = systems.slice(start, start + SYSTEMS_PER_WRITE);
+            queueWrite((store) => {
+                for (const record of extractNodeRecords(chunk)) {
                     store.put(record);
                 }
             });
-        } catch (err) {
-            console.error('NodesDB: failed to save systems data', err);
         }
+        return writeChain;
     }
 
     async function getAll() {

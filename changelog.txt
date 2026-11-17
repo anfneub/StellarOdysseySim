@@ -1,3 +1,9 @@
+2026-11-17
+- Universe map now starts zoomed in on the player's position
+- Systems load progressively: the map fills in while downloading
+- Added "Move to player" and "Move to voyager" buttons
+- Test station range is now remembered between visits
+
 2026-11-04
 - Added a test station to the universe map to preview a station's range and how many systems it covers
 - Added tooltips for unexplored systems in the universe map
