@@ -166,7 +166,6 @@ class UniverseMap {
     setMapSize(size) {
         if (size === this.mapSize) return;
         this.mapSize = size;
-        this.gridStep = size >= 5000 ? 1000 : 250;
         this.zoomLevel = 1;
         this.offsetX = 0;
         this.offsetY = 0;
@@ -271,6 +270,22 @@ class UniverseMap {
 
     setPlayerPosition(position) {
         this.playerPosition = position;
+        this.draw();
+    }
+
+    // Zoom to a square area of the map centered on a point. Near an edge the area
+    // shifts inward so it stays on the map, keeping the point as close to center as possible.
+    zoomToArea(centerX, centerY, size) {
+        if (size >= this.mapSize) {
+            this.zoomLevel = 1;
+            this.offsetX = 0;
+            this.offsetY = 0;
+        } else {
+            this.zoomLevel = this.mapSize / size;
+            const maxOffset = this.mapSize - size;
+            this.offsetX = Math.max(0, Math.min(maxOffset, centerX - size / 2));
+            this.offsetY = Math.max(0, Math.min(maxOffset, centerY - size / 2));
+        }
         this.draw();
     }
 
@@ -429,6 +444,8 @@ class UniverseMap {
 
         // Calculate visible range based on zoom and offset
         const visibleRange = this.mapSize / this.zoomLevel;
+        // Wide grid spacing only while more than 2000 units are visible (zoomed out on the Steam map)
+        this.gridStep = visibleRange <= 2000 ? 250 : 1000;
         const startX = Math.max(0, Math.floor(this.offsetX / this.gridStep) * this.gridStep);
         const endX = Math.min(this.mapSize, Math.ceil((this.offsetX + visibleRange) / this.gridStep) * this.gridStep);
         const startY = Math.max(0, Math.floor(this.offsetY / this.gridStep) * this.gridStep);
@@ -1532,6 +1549,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         coord_x = userData.data.currentSystem.coordinate_x;
                         coord_y = userData.data.currentSystem.coordinate_y;
                         universeMap.setPlayerPosition({ x: coord_x, y: coord_y });
+                        // Start zoomed in on the player rather than the whole universe
+                        universeMap.zoomToArea(coord_x, coord_y, 500);
                     }
 
                     // Handle voyager data
