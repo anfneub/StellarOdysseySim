@@ -2284,6 +2284,15 @@
                                 Show enemy space stations
                             </label>
                         </div>
+                        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5em; color: #e6eaf3;">
+                            <button id="test_station_toggle" type="button"
+                                style="background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; padding: 0.3em 0.7em; border-radius: 4px; cursor: pointer; margin: 0;">Test
+                                station: Off</button>
+                            <label for="test_station_range">Range</label>
+                            <input type="number" id="test_station_range" min="0" step="1" value="10"
+                                style="width: 60px; background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; padding: 0.3em; border-radius: 4px; box-sizing: border-box;">
+                            <span id="test_station_radius" style="opacity: 0.75;">radius 20</span>
+                        </div>
                         <button id="loadSystemsBtn" type="button"
                             style="background: #36405a; color: #e6eaf3; border: 1px solid #2c3242; padding: 0.5em 1em; border-radius: 4px; cursor: pointer; width: 100%;">Load
                             Systems</button>

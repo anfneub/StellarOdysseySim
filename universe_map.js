@@ -71,6 +71,13 @@ class UniverseMap {
         this.dungeons = [];
         this.runes = [];
 
+        // Test station: previews a station's range circle at the cursor
+        this.testStationEnabled = false;
+        this.testStationRange = 10;
+        this.testStationMouse = null;    // Map coordinates under the cursor, null when off-canvas
+        this.hoveredUnexplored = null;   // Hovered undiscovered grid point
+        this.exploredKeys = new Set();   // Discovered system coordinates, see getCoordKey()
+
         // Space station coordinates (hardcoded)
         // this.spaceStations = [];
 
@@ -142,6 +149,26 @@ class UniverseMap {
             });
         }
 
+        const testStationToggle = document.getElementById('test_station_toggle');
+        if (testStationToggle) {
+            testStationToggle.addEventListener('click', () => {
+                this.testStationEnabled = !this.testStationEnabled;
+                testStationToggle.textContent = `Test station: ${this.testStationEnabled ? 'On' : 'Off'}`;
+                testStationToggle.style.background = this.testStationEnabled ? '#ffd166' : '#36405a';
+                testStationToggle.style.color = this.testStationEnabled ? '#073b4c' : '#e6eaf3';
+                this.draw();
+            });
+        }
+
+        const testStationRangeInput = document.getElementById('test_station_range');
+        if (testStationRangeInput) {
+            testStationRangeInput.addEventListener('input', (e) => {
+                this.testStationRange = Math.max(0, Number(e.target.value) || 0);
+                document.getElementById('test_station_radius').textContent = `radius ${this.getTestStationRadius()}`;
+                this.draw();
+            });
+        }
+
         // Set canvas size
         this.resizeCanvas();
         window.addEventListener('resize', () => this.resizeCanvas());
@@ -151,6 +178,11 @@ class UniverseMap {
         this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
         this.canvas.addEventListener('mouseup', () => this.handleMouseUp());
         this.canvas.addEventListener('wheel', (e) => this.handleWheel(e));
+        this.canvas.addEventListener('mouseleave', () => {
+            this.testStationMouse = null;
+            this.hoveredUnexplored = null;
+            this.draw();
+        });
 
         // Add touch event listeners for mobile support
         this.canvas.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
@@ -223,6 +255,7 @@ class UniverseMap {
 
     loadSystems(data) {
         this.systems = data.systems;
+        this.exploredKeys = new Set(this.systems.map(s => this.getCoordKey(s.coordinate_x, s.coordinate_y)));
         // Update the systems count text
         const systemsCountElement = document.getElementById('systemsCount');
         if (systemsCountElement) {
@@ -770,6 +803,34 @@ class UniverseMap {
             }
         }
 
+        // Draw the test station circle under the tooltips
+        if (this.testStationEnabled && this.testStationMouse) {
+            const px = toPixelX(this.testStationMouse.x);
+            const py = toPixelY(this.testStationMouse.y);
+            const radius = this.getTestStationRadius();
+            const radiusX = (radius / this.mapSize) * graphWidth * this.zoomLevel;
+            const radiusY = (radius / this.mapSize) * graphHeight * this.zoomLevel;
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(padding.left, padding.top, graphWidth, graphHeight);
+            ctx.clip();
+            ctx.beginPath();
+            ctx.ellipse(px, py, radiusX, radiusY, 0, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 209, 102, 0.18)';
+            ctx.fill();
+            ctx.setLineDash([6, 4]);
+            ctx.strokeStyle = '#ffd166';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.arc(px, py, 3, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffd166';
+            ctx.fill();
+            ctx.restore();
+        }
+
         // Draw squadron space station tooltip if hovered
         if (this.showSpaceStations && this.hoveredSpaceStation) {
             const ss = this.hoveredSpaceStation;
@@ -954,6 +1015,20 @@ class UniverseMap {
         // Draw system tooltip last so it sits above every other map element
         if (this.showPublicSystems && this.hoveredSystem) {
             this.drawSystemTooltip(this.hoveredSystem, toPixelX, toPixelY);
+            if (this.testStationEnabled) {
+                this.drawInfoBox(
+                    this.getTestStationLines(this.hoveredSystem),
+                    toPixelX(this.hoveredSystem.coordinate_x),
+                    toPixelY(this.hoveredSystem.coordinate_y),
+                    '#ffd166',
+                    true
+                );
+            }
+        }
+
+        // Unexplored grid points never overlap a hovered system, so this also sits on top
+        if (this.hoveredUnexplored) {
+            this.drawUnexploredTooltip(this.hoveredUnexplored, toPixelX, toPixelY);
         }
     }
 
@@ -1025,6 +1100,134 @@ class UniverseMap {
         ctx.restore();
     }
 
+    getCoordKey(x, y) {
+        return x * 100000 + y;
+    }
+
+    // Same rule as the squadron space station circles
+    getTestStationRadius() {
+        return 10 + this.testStationRange;
+    }
+
+    // Count discovered / undiscovered grid points within a radius of a point
+    countSystemsInRange(centerX, centerY, radius) {
+        const radiusSquared = radius * radius;
+        const minX = Math.max(1, Math.ceil(centerX - radius));
+        const maxX = Math.min(this.mapSize, Math.floor(centerX + radius));
+        const minY = Math.max(1, Math.ceil(centerY - radius));
+        const maxY = Math.min(this.mapSize, Math.floor(centerY + radius));
+        let explored = 0;
+        let unexplored = 0;
+        for (let x = minX; x <= maxX; x++) {
+            for (let y = minY; y <= maxY; y++) {
+                const dx = x - centerX;
+                const dy = y - centerY;
+                if (dx * dx + dy * dy > radiusSquared) continue;
+                if (this.exploredKeys.has(this.getCoordKey(x, y))) explored++;
+                else unexplored++;
+            }
+        }
+        return { explored, unexplored };
+    }
+
+    getTestStationLines(system) {
+        const radius = this.getTestStationRadius();
+        const counts = this.countSystemsInRange(system.coordinate_x, system.coordinate_y, radius);
+        return [
+            { text: `Test station here (radius ${radius})`, color: '#ffd166', bold: true },
+            { text: `Unexplored in range: ${counts.unexplored}`, color: '#ffd166' },
+            { text: `Explored in range: ${counts.explored}`, color: '#9aa3b5' }
+        ];
+    }
+
+    // Draws a tooltip-style box next to a point, or above it to clear a tooltip already there
+    drawInfoBox(lines, px, py, borderColor, above = false) {
+        const ctx = this.ctx;
+        const lineHeight = 18;
+        const paddingX = 9;
+        const paddingY = 8;
+
+        ctx.save();
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        const textWidth = Math.max(...lines.map(line => {
+            ctx.font = line.bold ? 'bold 13px Arial' : '13px Arial';
+            return ctx.measureText(line.text).width;
+        }));
+        const boxWidth = textWidth + paddingX * 2;
+        const boxHeight = lines.length * lineHeight + paddingY * 2;
+
+        let boxX = px + 12;
+        let boxY = above ? py - 18 - boxHeight : py - 12;
+        if (boxX + boxWidth > this.canvas.width - 4) boxX = px - 12 - boxWidth;
+        boxX = Math.max(4, boxX);
+        if (boxY + boxHeight > this.canvas.height - 4) boxY = this.canvas.height - 4 - boxHeight;
+        boxY = Math.max(4, boxY);
+
+        ctx.fillStyle = 'rgba(35, 40, 58, 0.95)';
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 7);
+        ctx.fill();
+        ctx.stroke();
+
+        lines.forEach((line, i) => {
+            ctx.font = line.bold ? 'bold 13px Arial' : '13px Arial';
+            ctx.fillStyle = line.color || '#e6eaf3';
+            ctx.fillText(line.text, boxX + paddingX, boxY + paddingY + i * lineHeight);
+        });
+        ctx.restore();
+    }
+
+    drawUnexploredTooltip(point, toPixelX, toPixelY) {
+        const px = toPixelX(point.coordinate_x);
+        const py = toPixelY(point.coordinate_y);
+
+        this.ctx.save();
+        this.ctx.strokeStyle = '#e6eaf3';
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeRect(px - 3.5, py - 3.5, 7, 7);
+        this.ctx.restore();
+
+        this.drawInfoBox([
+            { text: `Unexplored system (${point.coordinate_x}, ${point.coordinate_y})`, bold: true },
+            { text: 'Name / resources unknown', color: '#9aa3b5' },
+            ...(this.testStationEnabled ? this.getTestStationLines(point) : [])
+        ], px, py, '#9aa3b5');
+    }
+
+    // Snap the cursor to the nearest grid point and treat it as hovered if it is undiscovered.
+    // Runs after the other hover checks: stations keep priority, while systems and journey
+    // points only win if closer, because the checks above take the first match within 10px,
+    // which is often a neighbour once grid points are less than 10px apart.
+    updateHoveredUnexplored(mouseX, mouseY, toPixelX, toPixelY, graphWidth, graphHeight) {
+        const minPixelsPerUnit = 2; // Below this, grid points are too close to tell apart
+        const hitRadius = 10;
+
+        if (this.hoveredSpaceStation || this.hoveredEnemyStation) return;
+        if (!this.showPublicSystems && !this.testStationEnabled) return;
+        if (Math.min(graphWidth, graphHeight) * this.zoomLevel / this.mapSize < minPixelsPerUnit) return;
+
+        const gridX = Math.round(this.testStationMouse.x);
+        const gridY = Math.round(this.testStationMouse.y);
+        if (gridX < 1 || gridY < 1 || gridX > this.mapSize || gridY > this.mapSize) return;
+        if (this.exploredKeys.has(this.getCoordKey(gridX, gridY))) return;
+
+        const distanceTo = (x, y) => Math.hypot(mouseX - toPixelX(x), mouseY - toPixelY(y));
+        const distance = distanceTo(gridX, gridY);
+        if (distance >= hitRadius) return;
+
+        const system = this.hoveredSystem;
+        const journeyPoint = this.hoveredJourneyPoint;
+        if (system && distanceTo(system.coordinate_x, system.coordinate_y) <= distance) return;
+        if (journeyPoint && distanceTo(journeyPoint.x, journeyPoint.y) <= distance) return;
+
+        this.hoveredSystem = null;
+        this.hoveredJourneyPoint = null;
+        this.hoveredUnexplored = { coordinate_x: gridX, coordinate_y: gridY };
+    }
+
     handleMouseMove(e) {
         const rect = this.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
@@ -1034,6 +1237,12 @@ class UniverseMap {
         const graphHeight = this.canvas.height - padding.top - padding.bottom;
         const toPixelX = (x) => padding.left + ((x - this.offsetX) / this.mapSize) * graphWidth * this.zoomLevel;
         const toPixelY = (y) => this.canvas.height - padding.bottom - ((y - this.offsetY) / this.mapSize) * graphHeight * this.zoomLevel;
+
+        this.testStationMouse = {
+            x: this.offsetX + ((x - padding.left) / (graphWidth * this.zoomLevel)) * this.mapSize,
+            y: this.offsetY + ((this.canvas.height - y - padding.bottom) / (graphHeight * this.zoomLevel)) * this.mapSize
+        };
+        this.hoveredUnexplored = null;
 
         if (this.isDragging) {
             // Calculate the movement in coordinate space
@@ -1197,6 +1406,8 @@ class UniverseMap {
         } else {
             this.hoveredEnemyStation = null;
         }
+
+        this.updateHoveredUnexplored(x, y, toPixelX, toPixelY, graphWidth, graphHeight);
 
         this.draw();
     }
