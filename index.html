@@ -1206,6 +1206,12 @@
                 element.addEventListener('input', saveSettings);
             });
 
+            // Resources calculator inputs live outside the form, so hook them up explicitly
+            document.querySelectorAll('#gathering-tab input').forEach(element => {
+                element.addEventListener('input', saveSettings);
+                element.addEventListener('change', saveSettings);
+            });
+
             // Add event listeners for all minus/plus buttons
             document.querySelectorAll('.minus-btn, .plus-btn').forEach(btn => {
                 btn.addEventListener('click', () => {

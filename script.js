@@ -1,37 +1,5 @@
 // Resources Calculator
-document.addEventListener('DOMContentLoaded', function() {
-    // Load saved values from localStorage
-    const savedValues = JSON.parse(localStorage.getItem('resourcesCalculatorValues')) || {};
-    const fields = [
-        'resources_per_action',
-        'rare_resources_per_action',
-        'number_of_drones',
-        'dodge_percentage',
-        'rare_drop_increase',
-        'maneuverability'
-    ];
-
-    // Apply saved values to fields
-    fields.forEach(field => {
-        const input = document.getElementById(field);
-        if (input && savedValues[field] !== undefined) {
-            input.value = savedValues[field];
-        }
-    });
-
-    // Save values to localStorage when they change
-    fields.forEach(field => {
-        const input = document.getElementById(field);
-        if (input) {
-            input.addEventListener('change', () => {
-                const currentValues = JSON.parse(localStorage.getItem('resourcesCalculatorValues')) || {};
-                currentValues[field] = input.value;
-                localStorage.setItem('resourcesCalculatorValues', JSON.stringify(currentValues));
-            });
-        }
-    });
-});
-
+// Input values are persisted together with the other settings (saveSettings in index.html)
 document.getElementById('calculateResourcesBtn').addEventListener('click', function() {
     const resourcesPerAction = parseFloat(document.getElementById('resources_per_action').value) || 0;
     const rareResourcesPerAction = parseFloat(document.getElementById('rare_resources_per_action').value) || 0;
@@ -86,13 +54,6 @@ document.querySelectorAll('.optimizer-block input[type="number"]').forEach(input
         // Ensure value stays within bounds
         if (val < min) input.value = min;
         if (val > max) input.value = max;
-    });
-
-    // Also save on input for immediate feedback
-    input.addEventListener('input', () => {
-        const currentValues = JSON.parse(localStorage.getItem('resourcesCalculatorValues')) || {};
-        currentValues[input.id] = input.value;
-        localStorage.setItem('resourcesCalculatorValues', JSON.stringify(currentValues));
     });
 });
 
