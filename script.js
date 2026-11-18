@@ -42,23 +42,39 @@ document.getElementById('calculateResourcesBtn').addEventListener('click', funct
 
     // Calculate total dodge
     const totalDodge = 0.5 + dodgePercentage + maneuverability / 2;
+    const actionTime = 12;  // seconds
 
     // Calculate resources per hour
-    const resourcesPerHour = resourcesPerAction * numberOfDrones * totalDodge * (0.98 - rareDropIncrease) * 3600 / 6;
+    const resourcesPerHour = resourcesPerAction * numberOfDrones * totalDodge * (0.98 - rareDropIncrease) * 3600 / actionTime;
     
     // Calculate rare resources per hour
-    const rareResourcesPerHour = rareResourcesPerAction * numberOfDrones * totalDodge * (0.02 + rareDropIncrease) * 3600 / 6;
+    const rareResourcesPerHour = rareResourcesPerAction * numberOfDrones * totalDodge * (0.02 + rareDropIncrease) * 3600 / actionTime;
 
     // Calculate time to reach goals
     const hoursTo32M = 32000000 / resourcesPerHour;
     const hoursTo800k = 800000 / rareResourcesPerHour;
+    const hoursTo1B = 1000000000 / resourcesPerHour;
+    const hoursTo1MRare = 1000000 / rareResourcesPerHour;
 
     // Update results
     document.getElementById('resources_per_hour').textContent = formatNumber(resourcesPerHour) + '/h';
     document.getElementById('rare_resources_per_hour').textContent = formatNumber(rareResourcesPerHour) + '/h';
     document.getElementById('hours_to_32m').textContent = formatNumber(hoursTo32M) + ' h';
-    document.getElementById('days_to_800k').textContent = formatNumber(hoursTo800k) + ' h';
+    document.getElementById('hours_to_800k').textContent = formatNumber(hoursTo800k) + ' h';
+    document.getElementById('time_to_1b').textContent = formatDuration(hoursTo1B);
+    document.getElementById('time_to_1m_rare').textContent = formatDuration(hoursTo1MRare);
 });
+
+// Format a duration given in hours as "Xd Yh" (or "Yh Zm" when under a day)
+function formatDuration(hours) {
+    if (isNaN(hours) || !isFinite(hours)) return '-';
+    const totalMinutes = Math.round(hours * 60);
+    const days = Math.floor(totalMinutes / 1440);
+    const h = Math.floor((totalMinutes % 1440) / 60);
+    const m = totalMinutes % 60;
+    if (days > 0) return `${days}d ${h}h (${formatNumber(hours)} h)`;
+    return `${h}h ${m}m`;
+}
 
 // Add event listeners for input field step buttons (up/down arrows)
 document.querySelectorAll('.optimizer-block input[type="number"]').forEach(input => {

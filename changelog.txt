@@ -1,3 +1,6 @@
+2026-11-18
+- Resources calculator now shows the correct values assuming 12s action and also shows time needed to gather 1B resources and 1M rare resources
+
 2026-11-17
 - Universe map now starts zoomed in on the player's position
 - Systems load progressively: the map fills in while downloading

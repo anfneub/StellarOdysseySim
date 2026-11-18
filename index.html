@@ -2219,8 +2219,10 @@
                         <div><b>Resources per hour:</b> <span id="resources_per_hour">-</span></div>
                         <div><b>Rare resources per hour:</b> <span id="rare_resources_per_hour">-</span></div>
                         <div><b>Hours necessary to gather 32M resources:</b> <span id="hours_to_32m">-</span></div>
-                        <div><b>Hours necessary to gather 800k rare resources:</b> <span id="days_to_800k">-</span>
+                        <div><b>Hours necessary to gather 800k rare resources:</b> <span id="hours_to_800k">-</span>
                         </div>
+                        <div><b>Time necessary to gather 1B resources:</b> <span id="time_to_1b">-</span></div>
+                        <div><b>Time necessary to gather 1M rare resources:</b> <span id="time_to_1m_rare">-</span></div>
                     </div>
                 </div>
             </div>
@@ -2752,8 +2754,8 @@
         if (lastUpdated) {
             const now = new Date();
             const pad = n => n.toString().padStart(2, '0');
-            const dateStr = "2026-11-17";
-            const timeStr = "19:26 UTC";
+            const dateStr = "2026-11-18";
+            const timeStr = "15:04 UTC";
             lastUpdated.textContent = `Last updated: ${dateStr} ${timeStr}`;
         }
     </script>
